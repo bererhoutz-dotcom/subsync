@@ -421,7 +421,7 @@
       <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">Demo: demo@subsync.app / password</p>
     </div>
     <div id="signup-form" style="display:none">
-      <div class="form-group"><label>Full Name</label><input class="form-control" type="text" id="su-name" placeholder="Your name"></div>
+      <div class="form-group"><label>Full name</label><input class="form-control" type="text" id="su-name" placeholder="Your name"></div>
       <div class="form-group"><label>Email</label><input class="form-control" type="email" id="su-email" placeholder="you@email.com"></div>
       <div class="form-group"><label>Password</label><input class="form-control" type="password" id="su-pass" placeholder="Min. 8 characters"></div>
       <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="doSignup()">Create Account →</button>
@@ -596,7 +596,7 @@
           <div class="card">
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Subs</th><th>Notes</th><th>Actions</th></tr></thead>
+                <thead><tr><th>name</th><th>Phone</th><th>Email</th><th>Subs</th><th>Notes</th><th>Actions</th></tr></thead>
                 <tbody id="customers-table"></tbody>
               </table>
             </div>
@@ -747,7 +747,7 @@
     </div>
     <div class="modal-body">
       <input type="hidden" id="edit-customer-id">
-      <div class="form-group"><label>Full Name *</label><input class="form-control" id="c-name" placeholder="John Doe"></div>
+      <div class="form-group"><label>Full name *</label><input class="form-control" id="c-name" placeholder="John Doe"></div>
       <div class="form-group"><label>Phone / WhatsApp *</label><input class="form-control" id="c-phone" placeholder="+1 234 567 8900"></div>
       <div class="form-group"><label>Email (optional)</label><input class="form-control" type="email" id="c-email" placeholder="john@example.com"></div>
       <div class="form-group"><label>Notes</label><textarea class="form-control" id="c-notes" rows="3" placeholder="Any notes about this customer..."></textarea></div>
@@ -821,12 +821,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-// ==================== STATE ====================
-// Supabase
 const SUPABASE_URL = "https://wppssgbbdfrlzrvujtpq.supabase.co";
 const SUPABASE_KEY = "sb_publishable_KNRnq6GJ0wDJpWWDETbYbQ_69YKWiBT";
-
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 let state = {
   user: null,
   customers: [],
@@ -842,7 +840,14 @@ let state = {
   }
 };
 
-const SERVICES_EMOJI = { Netflix:'🎬', CapCut:'✂️', ChatGPT:'🤖', Spotify:'🎵', Adobe:'🎨', Custom:'⚙️' };
+const SERVICES_EMOJI = {
+  Netflix:'🎬',
+  CapCut:'✂️',
+  ChatGPT:'🤖',
+  Spotify:'🎵',
+  Adobe:'🎨',
+  Custom:'⚙️'
+};
 
 function formatMoney(amount) {
   const usdAmount = Number(amount || 0);
@@ -855,149 +860,69 @@ function formatMoney(amount) {
   });
 }
 
-// ==================== INIT ====================
-function init() {
-  const saved = localStorage.getItem('subsync_state');
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    state.customers = parsed.customers || [];
-    state.subscriptions = parsed.subscriptions || [];
-    state.darkMode = parsed.darkMode !== undefined ? parsed.darkMode : true;
-    state.currency = parsed.currency || 'USD';
-  }
-
-  autoRenewSubscriptions();
-
-  applyTheme();
-  checkAuth();
+function fmt(n) {
+  return '$' + parseFloat(n || 0).toFixed(2);
 }
 
-function seedData() {
-
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function saveState() {
-  localStorage.setItem('subsync_state', JSON.stringify({
-    customers: state.customers,
-    subscriptions: state.subscriptions,
-    darkMode: state.darkMode,
-    currency: state.currency
-  }));
+function getCustomer(id) {
+  return state.customers.find(c => String(c.id) === String(id)) || {};
 }
 
-function checkAuth() {
-  const u = localStorage.getItem('subsync_user');
-  if (u) {
-    state.user = JSON.parse(u);
-    showApp();
-  }
+function getDaysLeft(end) {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const e = new Date(end);
+  e.setHours(0,0,0,0);
+  return Math.ceil((e - today) / 86400000);
 }
+
+function getSubStatus(sub) {
+  const diff = getDaysLeft(sub.end);
+  if (diff < 0) return 'Expired';
+  if (diff <= 3) return 'Expiring Soon';
+  return 'Active';
+}
+
+function statusBadge(s) {
+  if (s === 'Active') return `<span class="badge badge-green">${s}</span>`;
+  if (s === 'Expiring Soon') return `<span class="badge badge-yellow">${s}</span>`;
+  return `<span class="badge badge-red">${s}</span>`;
+}
+
+function calcProfitVal(sub) {
+  return (parseFloat(sub.price) || 0) - (parseFloat(sub.cost) || 0);
+}
+
 function calculateEndDate(start, cycle) {
+  if (!start) return '';
   const date = new Date(start);
 
-  if (cycle === "monthly") {
+  if (cycle === 'monthly') {
     date.setMonth(date.getMonth() + 1);
   }
 
-  if (cycle === "yearly") {
+  if (cycle === 'yearly') {
     date.setFullYear(date.getFullYear() + 1);
   }
 
   return date.toISOString().split('T')[0];
 }
-// ==================== AUTH ====================
-function switchTab(tab) {
-  document.querySelectorAll('.auth-tab').forEach((t,i) => t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='signup'&&i===1)));
-  document.getElementById('login-form').style.display = tab==='login'?'block':'none';
-  document.getElementById('signup-form').style.display = tab==='signup'?'block':'none';
-}
 
-function doLogin() {
-  const e = document.getElementById('login-email').value.trim();
-  const p = document.getElementById('login-pass').value;
-  if (!e || !p) return toast('Enter email and password','⚠️');
-  const user = { name: e.split('@')[0].replace(/\./g,' ').replace(/\b\w/g,c=>c.toUpperCase()), email: e };
-  localStorage.setItem('subsync_user', JSON.stringify(user));
-  state.user = user;
-  showApp();
-  toast('Welcome back, ' + user.name + '!','🎉');
-}
-
-function doSignup() {
-  const n = document.getElementById('su-name').value.trim();
-  const e = document.getElementById('su-email').value.trim();
-  const p = document.getElementById('su-pass').value;
-  if (!n||!e||!p) return toast('Fill all required fields','⚠️');
-  if (p.length < 8) return toast('Password must be 8+ characters','⚠️');
-  const user = { name: n, email: e };
-  localStorage.setItem('subsync_user', JSON.stringify(user));
-  state.user = user;
-  showApp();
-  toast('Account created! Welcome, ' + n,'🎉');
-}
-
-function doLogout() {
-  localStorage.removeItem('subsync_user');
-  state.user = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('auth-screen').style.display = 'flex';
-}
-async function loadCustomersFromSupabase() {
-  const { data, error } = await supabaseClient
-    .from('customers')
-    .select('*');
-
-  if (error) {
-    console.log(error);
-    return;
-  }
-
-  state.customers = data.map(c => ({
-    id: c.id,
-    name: c.Name || '',
-    phone: c.Phone || '',
-    email: c['E-mail'] || '',
-    notes: c.Notes || ''
+function saveState() {
+  localStorage.setItem('subsync_state', JSON.stringify({
+    darkMode: state.darkMode,
+    currency: state.currency
   }));
 }
-async function showApp() {
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('user-name-disp').textContent = state.user.name;
-  document.getElementById('user-avatar').textContent = state.user.name[0].toUpperCase();
 
-await loadCustomersFromSupabase();
-await loadSubscriptionsFromSupabase();
-await loadPaymentsFromSupabase();
-showRecentPaymentsInConsole();
-
-  navigate('dashboard');
-  populateCustomerSelects();
-  updateNotifBadge();
+function applyTheme() {
+  document.body.classList.toggle('light', !state.darkMode);
 }
 
-// ==================== NAVIGATION ====================
-function navigate(page) {
-  state.currentPage = page;
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const pg = document.getElementById('page-' + page);
-  if (pg) { pg.classList.add('active'); pg.classList.add('fade-in'); setTimeout(()=>pg.classList.remove('fade-in'),400); }
-  document.querySelectorAll('.nav-item').forEach(n => { if (n.textContent.trim().toLowerCase().includes(page)) n.classList.add('active'); });
-  const titles = { dashboard:'Dashboard', customers:'Customers', subscriptions:'Subscriptions', analytics:'Analytics', notifications:'Notifications', invoices:'Invoices' };
-  document.getElementById('page-title').textContent = titles[page] || page;
-  if (page==='dashboard') renderDashboard();
-  if (page==='customers') renderCustomers();
-  if (page==='subscriptions') renderSubs();
-  if (page==='analytics') renderAnalytics();
-  if (page==='notifications') renderNotifications();
-  if (page==='invoices') populateInvoiceSelects();
-  const sb = document.getElementById('sidebar');
-  if (sb.classList.contains('open')) sb.classList.remove('open');
-  if (page === 'payments') renderPayments();
-}
-
-// ==================== THEME ====================
 function toggleDark() {
   state.darkMode = !state.darkMode;
   applyTheme();
@@ -1010,51 +935,281 @@ function changeCurrency(cur) {
   renderDashboard();
   renderSubs();
   renderAnalytics();
+  renderPayments();
 }
 
-function applyTheme() {
-  document.body.classList.toggle('light', !state.darkMode);
-}
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
 }
 
-// ==================== HELPERS ====================
-function getSubStatus(sub) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const end = new Date(sub.end); end.setHours(0,0,0,0);
-  const diff = Math.ceil((end - today) / 86400000);
-  if (diff < 0) return 'Expired';
-  if (diff <= 3) return 'Expiring Soon';
-  return 'Active';
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
 }
-function statusBadge(s) {
-  if (s==='Active') return `<span class="badge badge-green">${s}</span>`;
-  if (s==='Expiring Soon') return `<span class="badge badge-yellow">${s}</span>`;
-  return `<span class="badge badge-red">${s}</span>`;
-}
-function getCustomer(id) { return state.customers.find(c=>c.id===id)||{}; }
-function getDaysLeft(end) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  const e = new Date(end); e.setHours(0,0,0,0);
-  return Math.ceil((e-today)/86400000);
-}
-function uid() { return '_' + Math.random().toString(36).substr(2,9); }
-function calcProfitVal(sub) { return (parseFloat(sub.price)||0) - (parseFloat(sub.cost)||0); }
-function calcMarginVal(sub) {
-  const p = parseFloat(sub.price)||0;
-  if (!p) return 0;
-  return Math.round((calcProfitVal(sub)/p)*100);
-}
-function fmt(n) { return '$'+parseFloat(n||0).toFixed(2); }
 
-// ==================== DASHBOARD ====================
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
 
-function renderDashboard() {
-  updateStats();
-  renderRecentSubs();
-  renderDashboardAlerts();
+function toast(msg, icon='ℹ️') {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-msg">${msg}</span>`;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((t, i) => {
+    t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'signup' && i === 1));
+  });
+  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('signup-form').style.display = tab === 'signup' ? 'block' : 'none';
+}
+
+async function checkAuth() {
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error) {
+    console.log(error);
+    return;
+  }
+
+  const session = data.session;
+
+  if (session?.user) {
+    state.user = {
+      id: session.user.id,
+      name:
+        session.user.user_metadata?.full_name ||
+        session.user.email?.split('@')[0] ||
+        'User',
+      email: session.user.email
+    };
+
+    await showApp();
+  }
+}
+
+async function doLogin() {
+  const e = document.getElementById('login-email').value.trim();
+  const p = document.getElementById('login-pass').value;
+
+  if (!e || !p) return toast('Enter email and password', '⚠️');
+  if (!isValidEmail(e)) return toast('Enter a valid email', '⚠️');
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email: e,
+    password: p
+  });
+
+  if (error) {
+    console.log(error);
+    return toast(error.message || 'Login failed', '❌');
+  }
+
+  state.user = {
+    id: data.user.id,
+    name:
+      data.user.user_metadata?.full_name ||
+      data.user.email?.split('@')[0] ||
+      'User',
+    email: data.user.email
+  };
+
+  await showApp();
+  toast('Welcome back, ' + state.user.name + '!', '🎉');
+}
+
+async function doSignup() {
+  const n = document.getElementById('su-name').value.trim();
+  const e = document.getElementById('su-email').value.trim().toLowerCase();
+  const p = document.getElementById('su-pass').value;
+
+  if (!n || !e || !p) return toast('Fill all required fields', '⚠️');
+  if (!isValidEmail(e)) return toast('Enter a valid email', '⚠️');
+  if (p.length < 8) return toast('Password must be 8+ characters', '⚠️');
+
+  const { error } = await supabaseClient.auth.signUp({
+    email: e,
+    password: p,
+    options: {
+      data: { full_name: n }
+    }
+  });
+
+  if (error) {
+    console.log(error);
+    return toast(error.message || 'Signup failed', '❌');
+  }
+
+  toast('Account created. Check your email.', '📩');
+  switchTab('login');
+  document.getElementById('login-email').value = e;
+  document.getElementById('login-pass').value = '';
+}
+
+async function doLogout() {
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    console.log(error);
+    return toast('Logout failed', '❌');
+  }
+
+  state.user = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+}
+
+async function loadCustomersFromSupabase() {
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    console.log(userError);
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from('customers')
+    .select('id,name,phone,email,notes,user_id')
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.log(error);
+    return;
+  }
+
+  state.customers = data.map(c => ({
+    id: c.id,
+    name: c.name || '',
+    phone: c.phone || '',
+    email: c.email || '',
+    notes: c.notes || ''
+  }));
+}
+
+async function loadSubscriptionsFromSupabase() {
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    console.log(userError);
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from('subscriptions')
+    .select('*')
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.log(error);
+    return;
+  }
+
+  state.subscriptions = data.map(s => ({
+    id: s.id,
+    customerId: s.customer_id,
+    type: s.type,
+    start: s.start_date,
+    end: s.end_date,
+    cost: Number(s.buy_price || 0),
+    price: Number(s.sell_price || 0),
+    billingCycle: s.billing_cycle,
+    duration: s.duration,
+    competitor: Number(s.competitor_price || 0)
+  }));
+}
+
+async function loadPaymentsFromSupabase() {
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    console.log(userError);
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from('payments')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('paid_at', { ascending: false });
+
+  if (error) {
+    console.log(error);
+    return;
+  }
+
+  state.payments = data.map(p => ({
+    id: p.id,
+    subscriptionId: p.subscription_id,
+    amount: Number(p.amount || 0),
+    currency: p.currency || 'USD',
+    paidAt: p.paid_at
+  }));
+}
+
+async function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('user-name-disp').textContent = state.user?.name || 'User';
+  document.getElementById('user-avatar').textContent = (state.user?.name || 'U')[0].toUpperCase();
+
+  await loadCustomersFromSupabase();
+  await loadSubscriptionsFromSupabase();
+  await loadPaymentsFromSupabase();
+
+  populateCustomerSelects();
+  navigate('dashboard');
   updateNotifBadge();
+}
+
+function navigate(page) {
+  state.currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const pg = document.getElementById('page-' + page);
+  if (pg) {
+    pg.classList.add('active');
+    pg.classList.add('fade-in');
+    setTimeout(() => pg.classList.remove('fade-in'), 400);
+  }
+
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.textContent.trim().toLowerCase().includes(page)) n.classList.add('active');
+  });
+
+  const titles = {
+    dashboard:'Dashboard',
+    customers:'Customers',
+    subscriptions:'Subscriptions',
+    payments:'Payments',
+    analytics:'Analytics',
+    notifications:'Notifications',
+    invoices:'Invoices'
+  };
+
+  document.getElementById('page-title').textContent = titles[page] || page;
+
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'customers') renderCustomers();
+  if (page === 'subscriptions') renderSubs();
+  if (page === 'payments') renderPayments();
+  if (page === 'analytics') renderAnalytics();
+  if (page === 'notifications') renderNotifications();
+  if (page === 'invoices') populateInvoiceSelects();
+
+  const sb = document.getElementById('sidebar');
+  if (sb.classList.contains('open')) sb.classList.remove('open');
 }
 
 function updateStats() {
@@ -1083,87 +1238,90 @@ function updateStats() {
 
 function renderRecentSubs() {
   const tbody = document.getElementById('recent-subs-table');
-  const recent = [...state.subscriptions].sort((a,b)=>new Date(b.start)-new Date(a.start)).slice(0,5);
-  if (!recent.length) { tbody.innerHTML='<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">No subscriptions yet</div></div></td></tr>'; return; }
+  const recent = [...state.subscriptions].sort((a, b) => new Date(b.start) - new Date(a.start)).slice(0, 5);
+
+  if (!recent.length) {
+    tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">No subscriptions yet</div></div></td></tr>';
+    return;
+  }
+
   tbody.innerHTML = recent.map(s => {
     const c = getCustomer(s.customerId);
     const status = getSubStatus(s);
-    return `<tr><td><strong>${c.name||'?'}</strong></td><td>${SERVICES_EMOJI[s.type]||'⚙️'} ${s.type}</td><td>${statusBadge(status)}</td><td>${s.end}</td></tr>`;
+    return `<tr><td><strong>${c.name || '?'}</strong></td><td>${SERVICES_EMOJI[s.type] || '⚙️'} ${s.type}</td><td>${statusBadge(status)}</td><td>${s.end}</td></tr>`;
   }).join('');
 }
 
 function renderDashboardAlerts() {
   const el = document.getElementById('dashboard-alerts');
-  const alerts = state.subscriptions.filter(s=>getSubStatus(s)!=='Active');
-  if (!alerts.length) { el.innerHTML='<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">All clear!</div><div class="empty-sub">No urgent alerts</div></div>'; return; }
-  el.innerHTML = alerts.map(s=>{
+  const alerts = state.subscriptions.filter(s => getSubStatus(s) !== 'Active');
+
+  if (!alerts.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">All clear!</div><div class="empty-sub">No urgent alerts</div></div>';
+    return;
+  }
+
+  el.innerHTML = alerts.map(s => {
     const c = getCustomer(s.customerId);
     const status = getSubStatus(s);
     const days = getDaysLeft(s.end);
-    const color = status==='Expiring Soon'?'var(--yellow)':'var(--red)';
-    const msg = status==='Expired'?`Expired ${Math.abs(days)} days ago`:`Expires in ${days} days`;
-    return `<div class="notif-item"><div class="notif-dot" style="background:${color}"></div><div><div class="notif-title">${c.name} — ${s.type}</div><div class="notif-sub">${msg}</div></div>
-    <button class="btn btn-success btn-sm" onclick="renewSub('${s.id}')">Renew</button></div>`;
+    const color = status === 'Expiring Soon' ? 'var(--yellow)' : 'var(--red)';
+    const msg = status === 'Expired' ? `Expired ${Math.abs(days)} days ago` : `Expires in ${days} days`;
+
+    return `<div class="notif-item"><div class="notif-dot" style="background:${color}"></div><div><div class="notif-title">${c.name} — ${s.type}</div><div class="notif-sub">${msg}</div></div><button class="btn btn-success btn-sm" onclick="renewSub('${s.id}')">Renew</button></div>`;
   }).join('');
 }
 
-// ==================== CUSTOMERS ====================
-async function loadSubscriptionsFromSupabase() {
-  const { data, error } = await supabaseClient
-    .from('subscriptions')
-    .select('*');
+function renderRecentPayments() {
+  const el = document.getElementById('recent-payments');
+  const recent = (state.payments || []).slice(0, 5);
 
-  if (error) {
-    console.log(error);
+  if (!recent.length) {
+    el.innerHTML = '<div style="color:var(--text3);font-size:13px">No payments yet</div>';
     return;
   }
 
-  state.subscriptions = data.map(s => ({
-    id: s.id,
-    customerId: s.customer_id,
-    type: s.type,
-    start: s.start_date,
-    end: s.end_date,
-    status: s.status,
-    cost: Number(s.buy_price),
-    price: Number(s.sell_price)
-  }));
-}
-async function loadPaymentsFromSupabase() {
-  const { data, error } = await supabaseClient
-    .from('payments')
-    .select('*')
-    .order('paid_at', { ascending: false });
+  el.innerHTML = recent.map(p => {
+    const sub = state.subscriptions.find(s => s.id === p.subscriptionId);
+    const customer = state.customers.find(c => c.id === sub?.customerId);
 
-  if (error) {
-    console.log(error);
-    return;
-  }
-
-  state.payments = data.map(p => ({
-    id: p.id,
-    subscriptionId: p.subscription_id,
-    amount: Number(p.amount || 0),
-    currency: p.currency || 'USD',
-    paidAt: p.paid_at
-  }));
+    return `<div class="notif-item"><div><div class="notif-title">${customer?.name || 'Unknown'} — ${sub?.type || 'Service'}</div><div class="notif-sub">${formatMoney(p.amount)} • ${new Date(p.paidAt).toLocaleDateString()}</div></div></div>`;
+  }).join('');
 }
-  renderCustomers();
+
+function renderDashboard() {
+  updateStats();
+  renderRecentSubs();
+  renderDashboardAlerts();
+  renderRecentPayments();
+  updateNotifBadge();
+}
 
 function renderCustomers() {
-  const q = (document.getElementById('customer-search')||{}).value?.toLowerCase()||'';
-  const list = state.customers.filter(c=>c.name.toLowerCase().includes(q)||c.phone.includes(q)||(c.email||'').toLowerCase().includes(q));
+  const q = (document.getElementById('customer-search') || {}).value?.toLowerCase() || '';
+  const list = state.customers.filter(c =>
+    c.name.toLowerCase().includes(q) ||
+    c.phone.includes(q) ||
+    (c.email || '').toLowerCase().includes(q)
+  );
+
   const tbody = document.getElementById('customers-table');
-  if (!list.length) { tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">No customers found</div><div class="empty-sub">Add your first customer above</div></div></td></tr>`; return; }
-  tbody.innerHTML = list.map(c=>{
-    const subCount = state.subscriptions.filter(s=>s.customerId===c.id).length;
-    const wa = c.phone.replace(/\s/g,'').replace('+','');
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">No customers found</div><div class="empty-sub">Add your first customer above</div></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(c => {
+    const subCount = state.subscriptions.filter(s => String(s.customerId) === String(c.id)).length;
+    const wa = (c.phone || '').replace(/\s/g,'').replace('+','');
+
     return `<tr>
       <td><strong>${c.name}</strong></td>
       <td><a class="wa-btn" href="https://wa.me/${wa}" target="_blank">💬 ${c.phone}</a></td>
-      <td>${c.email||'<span style="color:var(--text3)">—</span>'}</td>
+      <td>${c.email || '<span style="color:var(--text3)">—</span>'}</td>
       <td><span class="badge badge-blue">${subCount} subs</span></td>
-      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">${c.notes||'—'}</td>
+      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">${c.notes || '—'}</td>
       <td>
         <div style="display:flex;gap:6px">
           <button class="btn btn-ghost btn-sm" onclick="editCustomer('${c.id}')">✏️</button>
@@ -1174,50 +1332,72 @@ function renderCustomers() {
   }).join('');
 }
 
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
 async function saveCustomer() {
+  const id = document.getElementById('edit-customer-id').value;
   const name = document.getElementById('c-name').value.trim();
   const phone = document.getElementById('c-phone').value.trim();
   const email = document.getElementById('c-email').value.trim();
   const notes = document.getElementById('c-notes').value.trim();
 
-  if (!name || !phone) {
-    return toast('Name and phone are required', '⚠️');
+  if (!name || !phone) return toast('Name and phone are required', '⚠️');
+  if (email && !isValidEmail(email)) return toast('Customer email is not valid', '⚠️');
+
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    return toast('User not logged in', '❌');
   }
 
-  const { data, error } = await supabaseClient
-    .from('customers')
-    .insert([{
-      Name: name,
-      Phone: phone,
-      "E-mail": email,
-      Notes: notes
-    }]);
+  let error;
+
+  if (id) {
+    ({ error } = await supabaseClient
+      .from('customers')
+      .update({
+        name: name,
+        phone: phone,
+        email: email || null,
+        notes: notes || null
+      })
+      .eq('id', id)
+      .eq('user_id', user.id));
+  } else {
+    ({ error } = await supabaseClient
+      .from('customers')
+      .insert([{
+        user_id: user.id,
+        name: name,
+        phone: phone,
+        email: email || null,
+        notes: notes || null
+      }]));
+  }
 
   if (error) {
-  console.log(error);
-  toast('Error saving customer', '❌');
-} else {
-  toast('Customer saved in Supabase!', '✅');
-  closeModal('customer-modal');
+    console.log(error);
+    return toast('Error saving customer', '❌');
+  }
 
-await loadCustomersFromSupabase();
-populateCustomerSelects();
-renderCustomers();
-renderDashboard();
-}
+  toast('Customer saved!', '✅');
+  closeModal('customer-modal');
+  await loadCustomersFromSupabase();
+  populateCustomerSelects();
+  renderCustomers();
+  renderDashboard();
 }
 
 function editCustomer(id) {
-  const c = state.customers.find(x=>x.id===id);
+  const c = state.customers.find(x => String(x.id) === String(id));
   if (!c) return;
+
   document.getElementById('edit-customer-id').value = id;
   document.getElementById('c-name').value = c.name;
   document.getElementById('c-phone').value = c.phone;
-  document.getElementById('c-email').value = c.email||'';
-  document.getElementById('c-notes').value = c.notes||'';
+  document.getElementById('c-email').value = c.email || '';
+  document.getElementById('c-notes').value = c.notes || '';
   document.getElementById('customer-modal-title').textContent = 'Edit Customer';
   openModal('customer-modal');
 }
@@ -1225,26 +1405,35 @@ function editCustomer(id) {
 async function deleteCustomer(id) {
   if (!confirm('Delete this customer? All their subscriptions will also be removed.')) return;
 
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    return toast('User not logged in', '❌');
+  }
+
   const { error: subsError } = await supabaseClient
     .from('subscriptions')
     .delete()
-    .eq('customer_id', id);
+    .eq('customer_id', id)
+    .eq('user_id', user.id);
 
   if (subsError) {
     console.log(subsError);
-    toast('Error deleting customer subscriptions', '❌');
-    return;
+    return toast('Error deleting customer subscriptions', '❌');
   }
 
   const { error: customerError } = await supabaseClient
     .from('customers')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', user.id);
 
   if (customerError) {
     console.log(customerError);
-    toast('Error deleting customer', '❌');
-    return;
+    return toast('Error deleting customer', '❌');
   }
 
   await loadCustomersFromSupabase();
@@ -1254,46 +1443,47 @@ async function deleteCustomer(id) {
   renderSubs();
   renderDashboard();
   updateNotifBadge();
-
   toast('Customer deleted successfully', '🗑️');
 }
-// ==================== SUBSCRIPTIONS ====================
+
 function populateCustomerSelects() {
-  const opts = state.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-  ['s-customer','inv-customer'].forEach(id=>{
+  const opts = state.customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  ['s-customer','inv-customer'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = '<option value="">Select customer...</option>' + opts;
   });
 }
 
 let selectedSubType = '';
+
 function pickSubType(type, btn) {
   selectedSubType = type;
   document.getElementById('s-type').value = type;
-  document.querySelectorAll('.sub-type-btn').forEach(b=>b.classList.remove('selected'));
+  document.querySelectorAll('.sub-type-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
-  document.getElementById('s-type-custom').style.display = type==='Custom'?'block':'none';
+  document.getElementById('s-type-custom').style.display = type === 'Custom' ? 'block' : 'none';
 }
 
 function calcProfit() {
-  const cost = parseFloat(document.getElementById('s-cost').value)||0;
-  const price = parseFloat(document.getElementById('s-price').value)||0;
+  const cost = parseFloat(document.getElementById('s-cost').value) || 0;
+  const price = parseFloat(document.getElementById('s-price').value) || 0;
   const profit = price - cost;
-  const margin = price ? Math.round((profit/price)*100) : 0;
+  const margin = price ? Math.round((profit / price) * 100) : 0;
+
   document.getElementById('calc-profit').textContent = fmt(cost);
   document.getElementById('calc-net').textContent = fmt(profit);
   document.getElementById('calc-margin').textContent = margin + '%';
 }
 
 async function saveSubscription() {
+  const eid = document.getElementById('edit-sub-id').value;
   const customerId = document.getElementById('s-customer').value;
   let type = document.getElementById('s-type').value;
   if (type === 'Custom') type = document.getElementById('s-type-custom').value.trim() || 'Custom';
 
   const start = document.getElementById('s-start').value;
-const cycle = document.getElementById('s-cycle').value;
-
-const end = calculateEndDate(start, cycle);
+  const cycle = document.getElementById('s-cycle').value;
+  const end = calculateEndDate(start, cycle);
   const cost = parseFloat(document.getElementById('s-cost').value) || 0;
   const price = parseFloat(document.getElementById('s-price').value) || 0;
   const competitor = parseFloat(document.getElementById('s-competitor').value) || 0;
@@ -1302,43 +1492,54 @@ const end = calculateEndDate(start, cycle);
     return toast('Fill required fields', '⚠️');
   }
 
-  if (new Date(end) <= new Date(start)) {
-    return toast('End date must be after start date', '⚠️');
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    return toast('User not logged in', '❌');
   }
 
-  const eid = document.getElementById('edit-sub-id').value;
+  const payload = {
+    customer_id: customerId,
+    type: type,
+    start_date: start,
+    end_date: end,
+    buy_price: cost,
+    sell_price: price,
+    competitor_price: competitor,
+    billing_cycle: cycle,
+    duration: cycle === 'yearly' ? 365 : 30
+  };
+
+  let error;
 
   if (eid) {
-    const s = state.subscriptions.find(s => s.id === eid);
-    Object.assign(s, { customerId, type, start, end, cost, price, competitor });
-    toast('Subscription updated!', '✅');
+    ({ error } = await supabaseClient
+      .from('subscriptions')
+      .update(payload)
+      .eq('id', eid)
+      .eq('user_id', user.id));
   } else {
-    const { error } = await supabaseClient
+    ({ error } = await supabaseClient
       .from('subscriptions')
       .insert([{
-  customer_id: customerId,
-  type: type,
-  start_date: start,
-  end_date: end,
-  status: 'active',
-  buy_price: cost,
-  sell_price: price,
-  billing_cycle: cycle
-}])
+        user_id: user.id,
+        ...payload
+      }]));
+  }
 
-    if (error) {
-  console.log(error);
-  toast('Error saving subscription', '❌');
-  return;
-}
+  if (error) {
+    console.log(error);
+    return toast('Error saving subscription', '❌');
+  }
 
-toast('Subscription saved!', '✅');
-closeModal('sub-modal');
-
-await loadSubscriptionsFromSupabase();
-renderSubs();
-renderDashboard();
-}
+  toast('Subscription saved!', '✅');
+  closeModal('sub-modal');
+  await loadSubscriptionsFromSupabase();
+  renderSubs();
+  renderDashboard();
 }
 
 function renderSubs() {
@@ -1346,10 +1547,10 @@ function renderSubs() {
   const statusF = (document.getElementById('sub-filter') || {}).value || '';
   const typeF = (document.getElementById('sub-type-filter') || {}).value || '';
 
-  let list = state.subscriptions.filter(s => {
+  const list = state.subscriptions.filter(s => {
     const c = getCustomer(s.customerId);
     const status = getSubStatus(s);
-    const match = !q || c.name?.toLowerCase().includes(q) || s.type.toLowerCase().includes(q);
+    const match = !q || (c.name || '').toLowerCase().includes(q) || s.type.toLowerCase().includes(q);
     const sMatch = !statusF || status === statusF;
     const tMatch = !typeF || s.type === typeF;
     return match && sMatch && tMatch;
@@ -1359,16 +1560,7 @@ function renderSubs() {
   if (!tbody) return;
 
   if (!list.length) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="10">
-          <div class="empty-state">
-            <div class="empty-icon">📦</div>
-            <div class="empty-title">No subscriptions found</div>
-          </div>
-        </td>
-      </tr>
-    `;
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">No subscriptions found</div></div></td></tr>`;
     return;
   }
 
@@ -1381,11 +1573,7 @@ function renderSubs() {
     const days = getDaysLeft(s.end);
 
     const paidToday = (state.payments || []).some(p => {
-      return (
-        p.subscriptionId === s.id &&
-        p.paidAt &&
-        p.paidAt.startsWith(today)
-      );
+      return p.subscriptionId === s.id && p.paidAt && p.paidAt.startsWith(today);
     });
 
     return `
@@ -1411,6 +1599,7 @@ function renderSubs() {
     `;
   }).join('');
 }
+
 function renderPayments() {
   const tbody = document.getElementById('payments-table');
   if (!tbody) return;
@@ -1418,16 +1607,7 @@ function renderPayments() {
   const payments = state.payments || [];
 
   if (!payments.length) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="5">
-          <div class="empty-state">
-            <div class="empty-icon">💸</div>
-            <div class="empty-title">No payments yet</div>
-          </div>
-        </td>
-      </tr>
-    `;
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">💸</div><div class="empty-title">No payments yet</div></div></td></tr>`;
     return;
   }
 
@@ -1441,28 +1621,27 @@ function renderPayments() {
         <td>${sub?.type || 'Service'}</td>
         <td>${formatMoney(p.amount)}</td>
         <td>${new Date(p.paidAt).toLocaleDateString()}</td>
-        <td>
-          <button class="btn btn-danger btn-sm" onclick="deletePayment('${p.id}')">🗑</button>
-        </td>
+        <td><button class="btn btn-danger btn-sm" onclick="deletePayment('${p.id}')">🗑</button></td>
       </tr>
     `;
   }).join('');
 }
 
 function editSub(id) {
-  const s = state.subscriptions.find(x=>x.id===id);
+  const s = state.subscriptions.find(x => x.id === id);
   if (!s) return;
+
   document.getElementById('edit-sub-id').value = id;
   document.getElementById('s-customer').value = s.customerId;
   document.getElementById('s-start').value = s.start;
-  
+  document.getElementById('s-cycle').value = s.billingCycle || 'monthly';
   document.getElementById('s-cost').value = s.cost;
   document.getElementById('s-price').value = s.price;
-  document.getElementById('s-competitor').value = s.competitor||'';
-  // pick type
-  document.querySelectorAll('.sub-type-btn').forEach(b=>b.classList.remove('selected'));
-  const btns = document.querySelectorAll('.sub-type-btn');
-  btns.forEach(b=>{ if (b.textContent.includes(s.type)) { b.classList.add('selected'); selectedSubType=s.type; } });
+  document.getElementById('s-competitor').value = s.competitor || '';
+  document.querySelectorAll('.sub-type-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('.sub-type-btn').forEach(b => {
+    if (b.textContent.includes(s.type)) b.classList.add('selected');
+  });
   document.getElementById('s-type').value = s.type;
   document.getElementById('sub-modal-title').textContent = 'Edit Subscription';
   calcProfit();
@@ -1472,60 +1651,60 @@ function editSub(id) {
 async function deleteSub(id) {
   if (!confirm('Delete this subscription?')) return;
 
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    return toast('User not logged in', '❌');
+  }
+
   const { error } = await supabaseClient
     .from('subscriptions')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', user.id);
 
   if (error) {
     console.log(error);
-    toast('Error deleting subscription', '❌');
-    return;
+    return toast('Error deleting subscription', '❌');
   }
 
   await loadSubscriptionsFromSupabase();
   renderSubs();
   renderDashboard();
   updateNotifBadge();
-
-  toast('Subscription deleted from Supabase', '🗑️');
+  toast('Subscription deleted', '🗑️');
 }
+
 async function markAsPaid(id) {
   const sub = state.subscriptions.find(s => s.id === id);
-  if (!sub) {
-    toast('Subscription not found', '❌');
-    return;
-  }
+  if (!sub) return toast('Subscription not found', '❌');
 
-  const customer = state.customers.find(c => c.id === sub.customerId);
   const today = new Date().toISOString().split('T')[0];
-
   const alreadyPaidToday = (state.payments || []).some(p => {
-    return (
-      p.subscriptionId === sub.id &&
-      p.paidAt &&
-      p.paidAt.startsWith(today)
-    );
+    return p.subscriptionId === sub.id && p.paidAt && p.paidAt.startsWith(today);
   });
 
   if (alreadyPaidToday) {
-    toast('This subscription is already marked as paid today', '⚠️');
-    return;
+    return toast('Already marked as paid today', '⚠️');
   }
 
-  const ok = confirm(
-    `Mark as paid?\n\n` +
-    `Customer: ${customer?.name || 'Unknown'}\n` +
-    `Service: ${sub.type}\n` +
-    `Amount: ${formatMoney(sub.price)}\n` +
-    `Date: ${today}`
-  );
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
 
-  if (!ok) return;
+  if (userError || !user) {
+    return toast('User not logged in', '❌');
+  }
 
   const { error } = await supabaseClient
     .from('payments')
     .insert([{
+      user_id: user.id,
+      customer_id: sub.customerId,
       subscription_id: sub.id,
       amount: Number(sub.price || 0),
       currency: state.currency || 'USD',
@@ -1534,127 +1713,89 @@ async function markAsPaid(id) {
 
   if (error) {
     console.log(error);
-    toast('Error saving payment', '❌');
-    return;
+    return toast('Error saving payment', '❌');
   }
 
   await loadPaymentsFromSupabase();
+  renderPayments();
   renderDashboard();
   renderAnalytics();
-  showRecentPaymentsInConsole();
-
-  toast('Payment saved successfully!', '💸');
+  toast('Payment saved!', '💸');
 }
 
 async function deletePayment(paymentId) {
-  if (!paymentId) {
-    toast('Payment not found', '❌');
-    return;
-  }
+  if (!paymentId) return toast('Payment not found', '❌');
+  if (!confirm('Delete this payment?')) return;
 
-  const ok = confirm('Delete this payment?');
-  if (!ok) return;
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) {
+    return toast('User not logged in', '❌');
+  }
 
   const { error } = await supabaseClient
     .from('payments')
     .delete()
-    .eq('id', paymentId);
+    .eq('id', paymentId)
+    .eq('user_id', user.id);
 
   if (error) {
     console.log(error);
-    toast('Error deleting payment', '❌');
-    return;
+    return toast('Error deleting payment', '❌');
   }
 
   await loadPaymentsFromSupabase();
-
   renderPayments();
   renderDashboard();
   renderAnalytics();
-  showRecentPaymentsInConsole();
-
-  toast('Payment deleted successfully!', '🗑️');
+  toast('Payment deleted!', '🗑️');
 }
-function showRecentPaymentsInConsole() {
-  console.clear();
-  console.log('Recent Payments:');
 
-  (state.payments || []).slice(0, 10).forEach((p, index) => {
-    const sub = state.subscriptions.find(s => s.id === p.subscriptionId);
-    const customer = state.customers.find(c => c.id === sub?.customerId);
-
-    console.log(
-      `${index + 1}. ${customer?.name || 'Unknown'} | ${sub?.type || 'Service'} | ${p.amount} ${p.currency} | ${p.paidAt} | paymentId: ${p.id}`
-    );
-  });
-}
-function showRecentPaymentsInConsole() {
-  console.clear();
-  console.log('Recent Payments:');
-
-  (state.payments || []).slice(0, 10).forEach((p, index) => {
-    const sub = state.subscriptions.find(s => s.id === p.subscriptionId);
-    const customer = state.customers.find(c => c.id === sub?.customerId);
-
-    console.log(
-      `${index + 1}. ${customer?.name || 'Unknown'} | ${sub?.type || 'Service'} | ${p.amount} ${p.currency} | ${p.paidAt} | paymentId: ${p.id}`
-    );
-  });
-}
-function renewSub(id) {
-  const s = state.subscriptions.find(x=>x.id===id);
+async function renewSub(id) {
+  const s = state.subscriptions.find(x => x.id === id);
   if (!s) return;
+
   const oldEnd = new Date(s.end);
-  const start = new Date(s.start);
   const duration = Math.ceil((new Date(s.end) - new Date(s.start)) / 86400000);
   const today = new Date();
   const newStart = today > oldEnd ? today : oldEnd;
   const newEnd = new Date(newStart);
   newEnd.setDate(newEnd.getDate() + duration);
-  s.start = newStart.toISOString().split('T')[0];
-  s.end = newEnd.toISOString().split('T')[0];
-  saveState(); renderSubs(); renderDashboard(); toast('Subscription renewed until ' + s.end,'🔄');
-}
-async function autoRenewSubscriptions() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
 
-  for (const sub of state.subscriptions) {
-    const end = new Date(sub.end);
-    end.setHours(0, 0, 0, 0);
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
 
-    if (end < today) {
-      const start = new Date(sub.start);
-      start.setHours(0, 0, 0, 0);
+  if (userError || !user) {
+    return toast('User not logged in', '❌');
+  }
 
-      const duration = Math.ceil((end - start) / 86400000);
+  const { error } = await supabaseClient
+    .from('subscriptions')
+    .update({
+      start_date: newStart.toISOString().split('T')[0],
+      end_date: newEnd.toISOString().split('T')[0]
+    })
+    .eq('id', id)
+    .eq('user_id', user.id);
 
-      const newStart = new Date(end);
-      newStart.setDate(newStart.getDate() + 1);
-
-      const newEnd = new Date(newStart);
-      newEnd.setDate(newEnd.getDate() + duration);
-
-      const newStartStr = newStart.toISOString().split('T')[0];
-      const newEndStr = newEnd.toISOString().split('T')[0];
-
-      const { error } = await supabaseClient
-        .from('subscriptions')
-        .update({
-          start_date: newStartStr,
-          end_date: newEndStr
-        })
-        .eq('id', sub.id);
-
-      if (error) {
-        console.log('Auto renew error:', error);
-      }
-    }
+  if (error) {
+    console.log(error);
+    return toast('Renew failed', '❌');
   }
 
   await loadSubscriptionsFromSupabase();
+  renderSubs();
+  renderDashboard();
+  renderNotifications();
+  updateNotifBadge();
+  toast('Subscription renewed!', '🔄');
 }
-// ==================== ANALYTICS ====================
+
 function renderAnalytics() {
   const subs = state.subscriptions;
   const payments = state.payments || [];
@@ -1696,12 +1837,14 @@ function renderAnalytics() {
   const sorted = Object.entries(byType).sort((a, b) => b[1] - a[1]);
   const max = sorted[0]?.[1] || 1;
 
-  document.getElementById('top-services-chart').innerHTML = sorted.map(([type, count]) => `
-    <div class="bar-row">
-      <div class="bar-label">${SERVICES_EMOJI[type] || '⚙️'} ${type}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${(count / max) * 100}%"></div></div>
-      <div class="bar-val">${count}</div>
-    </div>`).join('') || '<div style="color:var(--text3);font-size:13px">No data</div>';
+  document.getElementById('top-services-chart').innerHTML =
+    sorted.map(([type, count]) => `
+      <div class="bar-row">
+        <div class="bar-label">${SERVICES_EMOJI[type] || '⚙️'} ${type}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(count / max) * 100}%"></div></div>
+        <div class="bar-val">${count}</div>
+      </div>
+    `).join('') || '<div style="color:var(--text3);font-size:13px">No data</div>';
 
   const statuses = { Active: 0, 'Expiring Soon': 0, Expired: 0 };
   subs.forEach(s => {
@@ -1710,26 +1853,48 @@ function renderAnalytics() {
   });
 
   const colors = { Active: 'var(--green)', 'Expiring Soon': 'var(--yellow)', Expired: 'var(--red)' };
-  document.getElementById('status-breakdown').innerHTML = Object.entries(statuses).map(([s, n]) => `
-    <div style="margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-        <span style="font-size:13px">${statusBadge(s)}</span>
-        <span style="font-size:13px;font-weight:600">${n}</span>
+
+  document.getElementById('status-breakdown').innerHTML =
+    Object.entries(statuses).map(([s, n]) => `
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:13px">${statusBadge(s)}</span>
+          <span style="font-size:13px;font-weight:600">${n}</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${subs.length ? (n / subs.length) * 100 : 0}%;background:${colors[s]}"></div></div>
       </div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${subs.length ? (n / subs.length) * 100 : 0}%;background:${colors[s]}"></div></div>
-    </div>`).join('');
+    `).join('');
 }
 
-// ==================== NOTIFICATIONS ====================
 function getNotifications() {
   const alerts = [];
-  state.subscriptions.forEach(s=>{
+
+  state.subscriptions.forEach(s => {
     const status = getSubStatus(s);
     const c = getCustomer(s.customerId);
     const days = getDaysLeft(s.end);
-    if (status==='Expiring Soon') alerts.push({ type:'warning', title:`${c.name} — ${s.type}`, msg:`Expires in ${days} day${days===1?'':'s'}`, time:s.end, subId:s.id });
-    if (status==='Expired') alerts.push({ type:'error', title:`${c.name} — ${s.type}`, msg:`Expired ${Math.abs(days)} days ago`, time:s.end, subId:s.id });
+
+    if (status === 'Expiring Soon') {
+      alerts.push({
+        type:'warning',
+        title:`${c.name} — ${s.type}`,
+        msg:`Expires in ${days} day${days === 1 ? '' : 's'}`,
+        time:s.end,
+        subId:s.id
+      });
+    }
+
+    if (status === 'Expired') {
+      alerts.push({
+        type:'error',
+        title:`${c.name} — ${s.type}`,
+        msg:`Expired ${Math.abs(days)} days ago`,
+        time:s.end,
+        subId:s.id
+      });
+    }
   });
+
   return alerts;
 }
 
@@ -1742,9 +1907,14 @@ function updateNotifBadge() {
 function renderNotifications() {
   const alerts = getNotifications();
   const el = document.getElementById('notifications-list');
-  if (!alerts.length) { el.innerHTML='<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No notifications</div><div class="empty-sub">Everything is up to date</div></div>'; return; }
-  el.innerHTML = alerts.map(a=>{
-    const color = a.type==='warning'?'var(--yellow)':'var(--red)';
+
+  if (!alerts.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No notifications</div><div class="empty-sub">Everything is up to date</div></div>';
+    return;
+  }
+
+  el.innerHTML = alerts.map(a => {
+    const color = a.type === 'warning' ? 'var(--yellow)' : 'var(--red)';
     return `<div class="notif-item">
       <div class="notif-dot" style="background:${color}"></div>
       <div style="flex:1"><div class="notif-title">${a.title}</div><div class="notif-sub">${a.msg}</div></div>
@@ -1756,13 +1926,16 @@ function renderNotifications() {
   }).join('');
 }
 
-// ==================== INVOICES ====================
 function populateInvoiceSelects() {
   populateCustomerSelects();
+
   document.getElementById('inv-customer').onchange = function() {
     const cid = this.value;
-    const subs = state.subscriptions.filter(s=>s.customerId===cid);
-    document.getElementById('inv-sub').innerHTML = '<option value="">Select subscription...</option>' + subs.map(s=>`<option value="${s.id}">${s.type} (${s.start} → ${s.end})</option>`).join('');
+    const subs = state.subscriptions.filter(s => String(s.customerId) === String(cid));
+
+    document.getElementById('inv-sub').innerHTML =
+      '<option value="">Select subscription...</option>' +
+      subs.map(s => `<option value="${s.id}">${s.type} (${s.start} → ${s.end})</option>`).join('');
   };
 }
 
@@ -1770,13 +1943,16 @@ function generateInvoice() {
   const cid = document.getElementById('inv-customer').value;
   const sid = document.getElementById('inv-sub').value;
   const note = document.getElementById('inv-note').value || 'Subscription Service';
-  if (!cid||!sid) return toast('Select customer and subscription','⚠️');
+
+  if (!cid || !sid) return toast('Select customer and subscription','⚠️');
+
   const c = getCustomer(cid);
-  const s = state.subscriptions.find(x=>x.id===sid);
-  if (!c||!s) return;
+  const s = state.subscriptions.find(x => x.id === sid);
+  if (!c || !s) return;
+
   const invNum = 'INV-' + Date.now().toString().slice(-6);
   const today = new Date().toISOString().split('T')[0];
-  const profit = calcProfitVal(s);
+
   document.getElementById('invoice-preview-area').innerHTML = `
     <div class="invoice-preview">
       <div class="invoice-header-row">
@@ -1784,22 +1960,24 @@ function generateInvoice() {
         <div class="invoice-number"><span>Invoice</span><strong>${invNum}</strong><span style="display:block;font-size:11px;color:#999;margin-top:4px">Date: ${today}</span></div>
       </div>
       <div class="invoice-details">
-        <div><div class="invoice-section-label">Bill To</div><div class="invoice-section-val"><strong>${c.name}</strong><br>${c.phone}${c.email?'<br>'+c.email:''}</div></div>
+        <div><div class="invoice-section-label">Bill To</div><div class="invoice-section-val"><strong>${c.name}</strong><br>${c.phone}${c.email ? '<br>' + c.email : ''}</div></div>
         <div><div class="invoice-section-label">Service Period</div><div class="invoice-section-val">${s.start} → ${s.end}</div></div>
       </div>
       <table class="invoice-table">
         <thead><tr><th>Description</th><th>Service</th><th>Amount</th></tr></thead>
         <tbody>
-          <tr><td>${note}</td><td>${SERVICES_EMOJI[s.type]||'⚙️'} ${s.type}</td><td><strong>${formatMoney(parseFloat(s.price||0))}</strong></td></tr>
+          <tr><td>${note}</td><td>${SERVICES_EMOJI[s.type] || '⚙️'} ${s.type}</td><td><strong>${formatMoney(parseFloat(s.price || 0))}</strong></td></tr>
         </tbody>
       </table>
       <div class="invoice-totals">
-        <div class="invoice-total-row"><span style="color:#666">Subtotal</span><span>${formatMoney(parseFloat(s.price||0))}</span></div>
-        <div class="invoice-total-row invoice-grand"><span>Total Due</span><span>${formatMoney(parseFloat(s.price||0))}</span></div>
+        <div class="invoice-total-row"><span style="color:#666">Subtotal</span><span>${formatMoney(parseFloat(s.price || 0))}</span></div>
+        <div class="invoice-total-row invoice-grand"><span>Total Due</span><span>${formatMoney(parseFloat(s.price || 0))}</span></div>
       </div>
       <div style="margin-top:24px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#999;text-align:center">Thank you for your business! — SubSync</div>
     </div>
-    <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="printInvoice()">🖨 Print / Save PDF</button>`;
+    <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="printInvoice()">🖨 Print / Save PDF</button>
+  `;
+
   toast('Invoice generated!','🧾');
 }
 
@@ -1807,77 +1985,99 @@ function printInvoice() {
   window.print();
 }
 
-// ==================== EXPORT CSV ====================
 function exportCSV() {
   const rows = [['Name','Phone','Email','Subscription','Type','Start','End','Cost','Price','Profit','Status']];
-  state.subscriptions.forEach(s=>{
+
+  state.subscriptions.forEach(s => {
     const c = getCustomer(s.customerId);
-    rows.push([c.name,c.phone,c.email||'',s.type,s.type,s.start,s.end,s.cost,s.price,calcProfitVal(s).toFixed(2),getSubStatus(s)]);
+    rows.push([c.name, c.phone, c.email || '', s.type, s.type, s.start, s.end, s.cost, s.price, calcProfitVal(s).toFixed(2), getSubStatus(s)]);
   });
-  const csv = rows.map(r=>r.map(v=>JSON.stringify(v)).join(',')).join('\n');
-  const blob = new Blob([csv],{type:'text/csv'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'subsync-export.csv'; a.click();
+
+  const csv = rows.map(r => r.map(v => JSON.stringify(v)).join(',')).join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'subsync-export.csv';
+  a.click();
+
   toast('CSV exported!','⬇️');
 }
 
-// ==================== TOAST ====================
-function toast(msg, icon='ℹ️') {
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-msg">${msg}</span>`;
-  document.getElementById('toast-container').appendChild(el);
-  setTimeout(()=>el.remove(), 3500);
-}
-
-// ==================== MODAL RESET ON OPEN ====================
-document.getElementById('customer-modal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeModal('customer-modal'); });
-document.getElementById('sub-modal').addEventListener('click', e=>{ if(e.target===e.currentTarget) closeModal('sub-modal'); });
-
-// Reset customer modal
-const origCustomerBtn = document.querySelector('[onclick="openModal(\'customer-modal\')"]');
 function openCustomerModal() {
-  document.getElementById('edit-customer-id').value='';
-  document.getElementById('c-name').value='';
-  document.getElementById('c-phone').value='';
-  document.getElementById('c-email').value='';
-  document.getElementById('c-notes').value='';
-  document.getElementById('customer-modal-title').textContent='Add Customer';
+  document.getElementById('edit-customer-id').value = '';
+  document.getElementById('c-name').value = '';
+  document.getElementById('c-phone').value = '';
+  document.getElementById('c-email').value = '';
+  document.getElementById('c-notes').value = '';
+  document.getElementById('customer-modal-title').textContent = 'Add Customer';
   openModal('customer-modal');
 }
-// override the btn
-document.querySelector('[onclick="openModal(\'customer-modal\')"]').setAttribute('onclick','openCustomerModal()');
 
-// Reset sub modal
 function openSubModal() {
   populateCustomerSelects();
-
-  document.getElementById('edit-sub-id').value='';
-  document.getElementById('s-customer').value='';
-  document.getElementById('s-type').value='';
-  document.getElementById('s-start').value='';
-
-  document.getElementById('s-cost').value='';
-  document.getElementById('s-price').value='';
-  document.getElementById('s-competitor').value='';
-  document.getElementById('s-type-custom').style.display='none';
-  document.querySelectorAll('.sub-type-btn').forEach(b=>b.classList.remove('selected'));
-  document.getElementById('calc-profit').textContent='$0';
-  document.getElementById('calc-net').textContent='$0';
-  document.getElementById('calc-margin').textContent='0%';
-  document.getElementById('sub-modal-title').textContent='New Subscription';
+  document.getElementById('edit-sub-id').value = '';
+  document.getElementById('s-customer').value = '';
+  document.getElementById('s-type').value = '';
+  document.getElementById('s-start').value = '';
+  document.getElementById('s-cycle').value = 'monthly';
+  document.getElementById('s-cost').value = '';
+  document.getElementById('s-price').value = '';
+  document.getElementById('s-competitor').value = '';
+  document.getElementById('s-type-custom').value = '';
+  document.getElementById('s-type-custom').style.display = 'none';
+  document.querySelectorAll('.sub-type-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('calc-profit').textContent = '$0';
+  document.getElementById('calc-net').textContent = '$0';
+  document.getElementById('calc-margin').textContent = '0%';
+  document.getElementById('sub-modal-title').textContent = 'New Subscription';
   selectedSubType = '';
   openModal('sub-modal');
 }
-document.querySelector('[onclick="openModal(\'sub-modal\')"]').setAttribute('onclick','openSubModal()');
 
-// Close sidebar on outside click (mobile)
-document.addEventListener('click', e=>{
-  const sb = document.getElementById('sidebar');
-  const hb = document.getElementById('hamburger');
-  if (sb.classList.contains('open') && !sb.contains(e.target) && e.target!==hb) sb.classList.remove('open');
+document.getElementById('customer-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal('customer-modal');
 });
 
-// ==================== BOOT ====================
+document.getElementById('sub-modal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeModal('sub-modal');
+});
+
+document.querySelector('[onclick="openModal(\'customer-modal\')"]').setAttribute('onclick', 'openCustomerModal()');
+document.querySelector('[onclick="openModal(\'sub-modal\')"]').setAttribute('onclick', 'openSubModal()');
+
+document.addEventListener('click', e => {
+  const sb = document.getElementById('sidebar');
+  const hb = document.getElementById('hamburger');
+  if (sb.classList.contains('open') && !sb.contains(e.target) && e.target !== hb) sb.classList.remove('open');
+});
+
+supabaseClient.auth.onAuthStateChange(async (event, session) => {
+  if (session?.user) {
+    state.user = {
+      id: session.user.id,
+      name:
+        session.user.user_metadata?.full_name ||
+        session.user.email?.split('@')[0] ||
+        'User',
+      email: session.user.email
+    };
+  } else {
+    state.user = null;
+  }
+});
+
+function init() {
+  const saved = localStorage.getItem('subsync_state');
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    state.darkMode = parsed.darkMode !== undefined ? parsed.darkMode : true;
+    state.currency = parsed.currency || 'USD';
+  }
+
+  applyTheme();
+  checkAuth();
+}
+
 init();
 </script>
 </body>
