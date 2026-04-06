@@ -1508,7 +1508,6 @@ async function saveSubscription() {
   const cycle = document.getElementById('s-cycle').value;
 const customEnd = document.getElementById('s-end-custom').value;
 const end = calculateEndDate(start, cycle, customEnd);
-  const end = calculateEndDate(start, cycle);
   const cost = parseFloat(document.getElementById('s-cost').value) || 0;
   const price = parseFloat(document.getElementById('s-price').value) || 0;
   const competitor = parseFloat(document.getElementById('s-competitor').value) || 0;
