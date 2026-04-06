@@ -679,14 +679,18 @@
           </div>
           <div class="analytics-grid">
             <div class="card">
-              <div class="card-header"><div class="card-title">Top Services</div></div>
-              <div class="card-body"><div class="bar-chart" id="top-services-chart"></div></div>
-            </div>
-            <div class="card">
               <div class="card-header"><div class="card-title">Subscription Status</div></div>
               <div class="card-body" id="status-breakdown"></div>
             </div>
           </div>
+          <div class="card" style="margin-top:16px;">
+  <div class="card-header">
+    <div class="card-title">Revenue & Profit by Month</div>
+  </div>
+  <div class="card-body">
+    <canvas id="revenue-chart" height="120"></canvas>
+  </div>
+</div>
           <div class="card" style="margin-top:16px;">
   <div class="card-header">
     <div class="card-title">Revenue & Profit by Month</div>
@@ -1289,11 +1293,14 @@ function updateStats() {
   document.getElementById('s-expiring').textContent = subs.filter(s => getSubStatus(s) === 'Expiring Soon').length;
 
   const totalProfit = payments.reduce((acc, p) => {
-  const sub = state.subscriptions.find(s => s.id === p.subscriptionId);
-  if (!sub) return acc;
+    const sub = state.subscriptions.find(s => s.id === p.subscriptionId);
+    if (!sub) return acc;
 
-  return acc + (p.baseAmount - Number(sub.cost || 0));
-}, 0);
+    return acc + (Number(p.baseAmount || 0) - Number(sub.cost || 0));
+  }, 0);
+
+  document.getElementById('s-profit').textContent = formatMoney(totalProfit);
+}
 
     const paymentAmountInUSD =
       p.currency === 'USD' ? p.amount :
@@ -2024,27 +2031,14 @@ function renderAnalytics() {
   const payments = state.payments || [];
 
   const revenueUSD = payments.reduce((acc, p) => {
-  return acc + p.baseAmount;
-}, 0);
-
-const profitUSD = payments.reduce((acc, p) => {
-  const sub = subs.find(s => s.id === p.subscriptionId);
-  if (!sub) return acc;
-
-  return acc + (p.baseAmount - Number(sub.cost || 0));
-}, 0);
+    return acc + Number(p.baseAmount || 0);
+  }, 0);
 
   const profitUSD = payments.reduce((acc, p) => {
     const sub = subs.find(s => s.id === p.subscriptionId);
     if (!sub) return acc;
 
-    const amount =
-      p.currency === 'USD' ? p.amount :
-      p.currency === 'EUR' ? p.amount / (state.rates.EUR || 1) :
-      p.currency === 'MAD' ? p.amount / (state.rates.MAD || 1) :
-      p.amount;
-
-    return acc + (amount - Number(sub.cost || 0));
+    return acc + (Number(p.baseAmount || 0) - Number(sub.cost || 0));
   }, 0);
 
   const avgMargin = revenueUSD ? Math.round((profitUSD / revenueUSD) * 100) : 0;
@@ -2057,7 +2051,10 @@ const profitUSD = payments.reduce((acc, p) => {
   document.getElementById('a-retention').textContent = retention + '%';
 
   const byType = {};
-  subs.forEach(s => { byType[s.type] = (byType[s.type] || 0) + 1; });
+  subs.forEach(s => {
+    byType[s.type] = (byType[s.type] || 0) + 1;
+  });
+
   const sorted = Object.entries(byType).sort((a, b) => b[1] - a[1]);
   const max = sorted[0]?.[1] || 1;
 
@@ -2076,7 +2073,11 @@ const profitUSD = payments.reduce((acc, p) => {
     statuses[st] = (statuses[st] || 0) + 1;
   });
 
-  const colors = { Active: 'var(--green)', 'Expiring Soon': 'var(--yellow)', Expired: 'var(--red)' };
+  const colors = {
+    Active: 'var(--green)',
+    'Expiring Soon': 'var(--yellow)',
+    Expired: 'var(--red)'
+  };
 
   document.getElementById('status-breakdown').innerHTML =
     Object.entries(statuses).map(([s, n]) => `
@@ -2088,8 +2089,8 @@ const profitUSD = payments.reduce((acc, p) => {
         <div class="progress-bar"><div class="progress-fill" style="width:${subs.length ? (n / subs.length) * 100 : 0}%;background:${colors[s]}"></div></div>
       </div>
     `).join('');
-    
-    renderRevenueChart();
+
+  renderRevenueChart();
 }
 
 function getNotifications() {
