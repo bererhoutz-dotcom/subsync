@@ -687,6 +687,14 @@
               <div class="card-body" id="status-breakdown"></div>
             </div>
           </div>
+          <div class="card" style="margin-top:16px;">
+  <div class="card-header">
+    <div class="card-title">Revenue & Profit by Month</div>
+  </div>
+  <div class="card-body">
+    <canvas id="revenue-chart" height="120"></canvas>
+  </div>
+</div>
         </div>
 
         <!-- NOTIFICATIONS PAGE -->
@@ -1900,6 +1908,117 @@ async function renewSub(id) {
   toast('Subscription renewed!', '🔄');
 }
 
+function renderRevenueChart() {
+  const canvas = document.getElementById('revenue-chart');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+
+  canvas.width = rect.width * dpr;
+  canvas.height = 120 * dpr;
+  ctx.scale(dpr, dpr);
+
+  const width = rect.width;
+  const height = 120;
+
+  ctx.clearRect(0, 0, width, height);
+
+  const monthly = {};
+
+  (state.payments || []).forEach(p => {
+    const date = new Date(p.paidAt);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+    if (!monthly[key]) {
+      monthly[key] = { revenue: 0, profit: 0 };
+    }
+
+    const revenue = Number(p.baseAmount || p.amount || 0);
+    const sub = state.subscriptions.find(s => s.id === p.subscriptionId);
+    const cost = Number(sub?.cost || 0);
+    const profit = revenue - cost;
+
+    monthly[key].revenue += revenue;
+    monthly[key].profit += profit;
+  });
+
+  const entries = Object.entries(monthly).sort((a, b) => a[0].localeCompare(b[0])).slice(-6);
+
+  if (!entries.length) {
+    ctx.fillStyle = '#9090a8';
+    ctx.font = '13px sans-serif';
+    ctx.fillText('No chart data yet', 12, 24);
+    return;
+  }
+
+  const labels = entries.map(([key]) => key);
+  const revenueData = entries.map(([, val]) => val.revenue);
+  const profitData = entries.map(([, val]) => val.profit);
+
+  const maxValue = Math.max(...revenueData, ...profitData, 1);
+  const left = 40;
+  const right = width - 10;
+  const top = 10;
+  const bottom = height - 25;
+  const chartWidth = right - left;
+  const chartHeight = bottom - top;
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = 1;
+
+  for (let i = 0; i < 5; i++) {
+    const y = top + (chartHeight / 4) * i;
+    ctx.beginPath();
+    ctx.moveTo(left, y);
+    ctx.lineTo(right, y);
+    ctx.stroke();
+  }
+
+  const getX = i => left + (chartWidth / Math.max(labels.length - 1, 1)) * i;
+  const getY = value => bottom - (value / maxValue) * chartHeight;
+
+  ctx.lineWidth = 2;
+
+  ctx.strokeStyle = '#38b6ff';
+  ctx.beginPath();
+  revenueData.forEach((value, i) => {
+    const x = getX(i);
+    const y = getY(value);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  ctx.strokeStyle = '#22d398';
+  ctx.beginPath();
+  profitData.forEach((value, i) => {
+    const x = getX(i);
+    const y = getY(value);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  ctx.fillStyle = '#9090a8';
+  ctx.font = '11px sans-serif';
+  labels.forEach((label, i) => {
+    const x = getX(i);
+    ctx.fillText(label.slice(5), x - 12, height - 8);
+  });
+
+  ctx.fillStyle = '#38b6ff';
+  ctx.fillRect(12, height - 18, 10, 10);
+  ctx.fillStyle = '#f0f0f5';
+  ctx.fillText('Revenue', 28, height - 9);
+
+  ctx.fillStyle = '#22d398';
+  ctx.fillRect(100, height - 18, 10, 10);
+  ctx.fillStyle = '#f0f0f5';
+  ctx.fillText('Profit', 116, height - 9);
+}
+
 function renderAnalytics() {
   const subs = state.subscriptions;
   const payments = state.payments || [];
@@ -1969,6 +2088,8 @@ const profitUSD = payments.reduce((acc, p) => {
         <div class="progress-bar"><div class="progress-fill" style="width:${subs.length ? (n / subs.length) * 100 : 0}%;background:${colors[s]}"></div></div>
       </div>
     `).join('');
+    
+    renderRevenueChart();
 }
 
 function getNotifications() {
