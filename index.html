@@ -1631,7 +1631,13 @@ tbody.innerHTML = list.map(s => {
       <td>${fmt(s.cost)}</td>
       <td>${fmt(s.price)}</td>
       <td style="color:${profit >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${fmt(profit)}</strong></td>
-      <td>${isPaid ? '<span style="color:lime">Paid</span>' : '<span style="color:red">Unpaid</span>'}</td>
+      <td>
+  ${
+    isPaid
+      ? `<span style="color:lime">Paid until ${s.end}</span>`
+      : `<span style="color:red">Unpaid</span>`
+  }
+</td>
       <td>${statusBadge(status)}</td>
       <td>
         <div style="display:flex;gap:4px">
