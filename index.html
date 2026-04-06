@@ -934,6 +934,19 @@ function handleCycleChange() {
     document.getElementById('s-end-custom').value = '';
   }
 }
+async function loadRates() {
+  try {
+    const res = await fetch('https://open.er-api.com/v6/latest/USD');
+    const data = await res.json();
+
+    if (data && data.rates) {
+      state.rates = data.rates;
+      state.rates.USD = 1;
+    }
+  } catch (error) {
+    console.log('Failed to load exchange rates', error);
+  }
+}
 
 function saveState() {
   localStorage.setItem('subsync_state', JSON.stringify({
@@ -1173,12 +1186,14 @@ async function loadPaymentsFromSupabase() {
   }
 
   state.payments = data.map(p => ({
-    id: p.id,
-    subscriptionId: p.subscription_id,
-    amount: Number(p.amount || 0),
-    currency: p.currency || 'USD',
-    paidAt: p.paid_at
-  }));
+  id: p.id,
+  subscriptionId: p.subscription_id,
+  amount: Number(p.amount || 0),
+  currency: p.currency || 'USD',
+  paidAt: p.paid_at,
+  fxRate: Number(p.fx_rate || 1),
+  baseAmount: Number(p.base_amount || p.amount || 0)
+}));
 }
 
 async function showApp() {
@@ -1187,6 +1202,7 @@ async function showApp() {
   document.getElementById('user-name-disp').textContent = state.user?.name || 'User';
   document.getElementById('user-avatar').textContent = (state.user?.name || 'U')[0].toUpperCase();
 
+  await loadRates();
   await loadCustomersFromSupabase();
   await loadSubscriptionsFromSupabase();
   await loadPaymentsFromSupabase();
@@ -1245,8 +1261,11 @@ function updateStats() {
   document.getElementById('s-expiring').textContent = subs.filter(s => getSubStatus(s) === 'Expiring Soon').length;
 
   const totalProfit = payments.reduce((acc, p) => {
-    const sub = state.subscriptions.find(s => s.id === p.subscriptionId);
-    if (!sub) return acc;
+  const sub = state.subscriptions.find(s => s.id === p.subscriptionId);
+  if (!sub) return acc;
+
+  return acc + (p.baseAmount - Number(sub.cost || 0));
+}, 0);
 
     const paymentAmountInUSD =
       p.currency === 'USD' ? p.amount :
@@ -1494,8 +1513,8 @@ function calcProfit() {
   const profit = price - cost;
   const margin = price ? Math.round((profit / price) * 100) : 0;
 
-  document.getElementById('calc-profit').textContent = fmt(cost);
-  document.getElementById('calc-net').textContent = fmt(profit);
+  document.getElementById('calc-profit').textContent = formatMoney(cost);
+  document.getElementById('calc-net').textContent = formatMoney(profit);
   document.getElementById('calc-margin').textContent = margin + '%';
 }
 
@@ -1628,9 +1647,9 @@ tbody.innerHTML = list.map(s => {
       <td>${SERVICES_EMOJI[s.type] || '⚙️'} ${s.type}</td>
       <td>${s.start}</td>
       <td style="color:${days <= 3 ? 'var(--yellow)' : days < 0 ? 'var(--red)' : 'inherit'}">${s.end}</td>
-      <td>${fmt(s.cost)}</td>
-      <td>${fmt(s.price)}</td>
-      <td style="color:${profit >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${fmt(profit)}</strong></td>
+      <td>${formatMoney(s.cost)}</td>
+      <td>${formatMoney(s.price)}</td>
+      <td style="color:${profit >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${formatMoney(profit)}</strong></td>
       <td>
   ${
     isPaid
@@ -1757,14 +1776,20 @@ async function markAsPaid(id) {
     return toast('User not logged in', '❌');
   }
 
+  const rate = state.rates?.[state.currency] || 1;
+  const amount = Number(sub.price || 0);
+  const baseAmount = amount / rate;
+
   const { error } = await supabaseClient
     .from('payments')
     .insert([{
       user_id: user.id,
       customer_id: sub.customerId,
       subscription_id: sub.id,
-      amount: Number(sub.price || 0),
+      amount: amount,
       currency: state.currency || 'USD',
+      fx_rate: rate,
+      base_amount: baseAmount,
       paid_at: new Date().toISOString()
     }]);
 
@@ -1777,6 +1802,8 @@ async function markAsPaid(id) {
   renderPayments();
   renderDashboard();
   renderAnalytics();
+  renderNotifications();
+  updateNotifBadge();
   toast('Payment saved!', '💸');
 }
 
@@ -1858,14 +1885,15 @@ function renderAnalytics() {
   const payments = state.payments || [];
 
   const revenueUSD = payments.reduce((acc, p) => {
-    const amount =
-      p.currency === 'USD' ? p.amount :
-      p.currency === 'EUR' ? p.amount / (state.rates.EUR || 1) :
-      p.currency === 'MAD' ? p.amount / (state.rates.MAD || 1) :
-      p.amount;
+  return acc + p.baseAmount;
+}, 0);
 
-    return acc + amount;
-  }, 0);
+const profitUSD = payments.reduce((acc, p) => {
+  const sub = subs.find(s => s.id === p.subscriptionId);
+  if (!sub) return acc;
+
+  return acc + (p.baseAmount - Number(sub.cost || 0));
+}, 0);
 
   const profitUSD = payments.reduce((acc, p) => {
     const sub = subs.find(s => s.id === p.subscriptionId);
@@ -2134,8 +2162,8 @@ handleCycleChange();
   document.getElementById('s-type-custom').value = '';
   document.getElementById('s-type-custom').style.display = 'none';
   document.querySelectorAll('.sub-type-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById('calc-profit').textContent = '$0';
-  document.getElementById('calc-net').textContent = '$0';
+  document.getElementById('calc-profit').textContent = formatMoney(0);
+  document.getElementById('calc-net').textContent = formatMoney(0);
   document.getElementById('calc-margin').textContent = '0%';
   document.getElementById('sub-modal-title').textContent = 'New Subscription';
   selectedSubType = '';
