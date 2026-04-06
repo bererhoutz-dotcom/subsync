@@ -1600,44 +1600,50 @@ function renderSubs() {
   if (!tbody) return;
 
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">No subscriptions found</div></div></td></tr>`;
-    return;
+  tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">No subscriptions found</div></div></td></tr>`;
+  return;
+}
+
+tbody.innerHTML = list.map(s => {
+  const c = getCustomer(s.customerId);
+  const status = getSubStatus(s);
+  const profit = calcProfitVal(s);
+  const days = getDaysLeft(s.end);
+
+  const lastPayment = (state.payments || [])
+    .filter(p => p.subscriptionId === s.id)
+    .sort((a, b) => new Date(b.paidAt) - new Date(a.paidAt))[0];
+
+  let isPaid = false;
+
+  if (lastPayment) {
+    const paymentDate = new Date(lastPayment.paidAt);
+    const endDate = new Date(s.end);
+    isPaid = paymentDate <= endDate;
   }
 
-  const today = new Date().toISOString().split('T')[0];
-
-  tbody.innerHTML = list.map(s => {
-    const c = getCustomer(s.customerId);
-    const status = getSubStatus(s);
-    const profit = calcProfitVal(s);
-    const days = getDaysLeft(s.end);
-
-    const paidToday = (state.payments || []).some(p => {
-      return p.subscriptionId === s.id && p.paidAt && p.paidAt.startsWith(today);
-    });
-
-    return `
-      <tr>
-        <td><strong>${c.name || '?'}</strong></td>
-        <td>${SERVICES_EMOJI[s.type] || '⚙️'} ${s.type}</td>
-        <td>${s.start}</td>
-        <td style="color:${days <= 3 ? 'var(--yellow)' : days < 0 ? 'var(--red)' : 'inherit'}">${s.end}</td>
-        <td>${fmt(s.cost)}</td>
-        <td>${fmt(s.price)}</td>
-        <td style="color:${profit >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${fmt(profit)}</strong></td>
-        <td>${paidToday ? '<span style="color:lime">Paid</span>' : '<span style="color:red">Unpaid</span>'}</td>
-        <td>${statusBadge(status)}</td>
-        <td>
-          <div style="display:flex;gap:4px">
-            <button class="btn btn-success btn-sm" onclick="markAsPaid('${s.id}')" title="Mark as Paid">💸</button>
-            <button class="btn btn-success btn-sm" onclick="renewSub('${s.id}')" title="Renew">🔄</button>
-            <button class="btn btn-ghost btn-sm" onclick="editSub('${s.id}')" title="Edit">✏️</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteSub('${s.id}')" title="Delete">🗑</button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join('');
+  return `
+    <tr>
+      <td><strong>${c.name || '?'}</strong></td>
+      <td>${SERVICES_EMOJI[s.type] || '⚙️'} ${s.type}</td>
+      <td>${s.start}</td>
+      <td style="color:${days <= 3 ? 'var(--yellow)' : days < 0 ? 'var(--red)' : 'inherit'}">${s.end}</td>
+      <td>${fmt(s.cost)}</td>
+      <td>${fmt(s.price)}</td>
+      <td style="color:${profit >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${fmt(profit)}</strong></td>
+      <td>${isPaid ? '<span style="color:lime">Paid</span>' : '<span style="color:red">Unpaid</span>'}</td>
+      <td>${statusBadge(status)}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn btn-success btn-sm" onclick="markAsPaid('${s.id}')" title="Mark as Paid">💸</button>
+          <button class="btn btn-success btn-sm" onclick="renewSub('${s.id}')" title="Renew">🔄</button>
+          <button class="btn btn-ghost btn-sm" onclick="editSub('${s.id}')" title="Edit">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteSub('${s.id}')" title="Delete">🗑</button>
+        </div>
+      </td>
+    </tr>
+  `;
+}).join('');
 }
 
 function renderPayments() {
