@@ -1925,34 +1925,65 @@ function renderAnalytics() {
 
 function getNotifications() {
   const alerts = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   state.subscriptions.forEach(s => {
-    const status = getSubStatus(s);
     const c = getCustomer(s.customerId);
-    const days = getDaysLeft(s.end);
 
-    if (status === 'Expiring Soon') {
-      alerts.push({
-        type:'warning',
-        title:`${c.name} — ${s.type}`,
-        msg:`Expires in ${days} day${days === 1 ? '' : 's'}`,
-        time:s.end,
-        subId:s.id
-      });
+    const endDate = new Date(s.end);
+    endDate.setHours(0, 0, 0, 0);
+
+    const days = Math.ceil((endDate - today) / 86400000);
+
+    const lastPayment = (state.payments || [])
+      .filter(p => p.subscriptionId === s.id)
+      .sort((a, b) => new Date(b.paidAt) - new Date(a.paidAt))[0];
+
+    let isPaid = false;
+
+    if (lastPayment) {
+      const paymentDate = new Date(lastPayment.paidAt);
+      paymentDate.setHours(0, 0, 0, 0);
+      isPaid = paymentDate <= endDate;
     }
 
-    if (status === 'Expired') {
+    if (isPaid && days >= 0) return;
+
+    if (days === 0) {
       alerts.push({
-        type:'error',
-        title:`${c.name} — ${s.type}`,
-        msg:`Expired ${Math.abs(days)} days ago`,
-        time:s.end,
-        subId:s.id
+        type: 'due',
+        title: `${c.name} — ${s.type}`,
+        msg: 'Expires today',
+        time: s.end,
+        subId: s.id
+      });
+      return;
+    }
+
+    if (days > 0 && days <= 3) {
+      alerts.push({
+        type: 'warning',
+        title: `${c.name} — ${s.type}`,
+        msg: `Expires in ${days} day${days === 1 ? '' : 's'}`,
+        time: s.end,
+        subId: s.id
+      });
+      return;
+    }
+
+    if (days < 0) {
+      alerts.push({
+        type: 'error',
+        title: `${c.name} — ${s.type}`,
+        msg: `Expired ${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'} ago`,
+        time: s.end,
+        subId: s.id
       });
     }
   });
 
-  return alerts;
+  return alerts.sort((a, b) => new Date(a.time) - new Date(b.time));
 }
 
 function updateNotifBadge() {
@@ -1966,20 +1997,38 @@ function renderNotifications() {
   const el = document.getElementById('notifications-list');
 
   if (!alerts.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">No notifications</div><div class="empty-sub">Everything is up to date</div></div>';
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">✅</div>
+        <div class="empty-title">No notifications</div>
+        <div class="empty-sub">Everything is up to date</div>
+      </div>`;
     return;
   }
 
   el.innerHTML = alerts.map(a => {
-    const color = a.type === 'warning' ? 'var(--yellow)' : 'var(--red)';
-    return `<div class="notif-item">
-      <div class="notif-dot" style="background:${color}"></div>
-      <div style="flex:1"><div class="notif-title">${a.title}</div><div class="notif-sub">${a.msg}</div></div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span class="notif-time">${a.time}</span>
-        <button class="btn btn-success btn-sm" onclick="renewSub('${a.subId}');renderNotifications();updateNotifBadge()">Renew</button>
+    let color = 'var(--yellow)';
+    if (a.type === 'error') color = 'var(--red)';
+    if (a.type === 'due') color = 'var(--blue)';
+
+    return `
+      <div class="notif-item">
+        <div class="notif-dot" style="background:${color}"></div>
+
+        <div style="flex:1">
+          <div class="notif-title">${a.title}</div>
+          <div class="notif-sub">${a.msg}</div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="notif-time">${a.time}</span>
+          <button class="btn btn-success btn-sm"
+            onclick="markAsPaid('${a.subId}');renderNotifications();updateNotifBadge()">
+            💸 Pay
+          </button>
+        </div>
       </div>
-    </div>`;
+    `;
   }).join('');
 }
 
@@ -2075,7 +2124,7 @@ function openSubModal() {
   document.getElementById('edit-sub-id').value = '';
   document.getElementById('s-customer').value = '';
   document.getElementById('s-type').value = '';
-  document.getElementById('s-start').value = '';
+  document.getElementById('s-start').value = new Date().toISOString().split('T')[0];
   document.getElementById('s-cycle').value = '1m';
 document.getElementById('s-end-custom').value = '';
 handleCycleChange();
