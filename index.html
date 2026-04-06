@@ -1503,17 +1503,30 @@ async function saveSubscription() {
   const eid = document.getElementById('edit-sub-id').value;
   const customerId = document.getElementById('s-customer').value;
   let type = document.getElementById('s-type').value;
-  if (type === 'Custom') type = document.getElementById('s-type-custom').value.trim() || 'Custom';
 
+  if (type === 'Custom') {
+    type = document.getElementById('s-type-custom').value.trim() || 'Custom';
+  }
+
+  const start = document.getElementById('s-start').value;
   const cycle = document.getElementById('s-cycle').value;
-const customEnd = document.getElementById('s-end-custom').value;
-const end = calculateEndDate(start, cycle, customEnd);
+  const customEnd = document.getElementById('s-end-custom').value;
+  const end = calculateEndDate(start, cycle, customEnd);
+
   const cost = parseFloat(document.getElementById('s-cost').value) || 0;
   const price = parseFloat(document.getElementById('s-price').value) || 0;
   const competitor = parseFloat(document.getElementById('s-competitor').value) || 0;
 
   if (!customerId || !type || !start || !end) {
     return toast('Fill required fields', '⚠️');
+  }
+
+  if (cycle === 'custom' && !customEnd) {
+    return toast('Select a custom end date', '⚠️');
+  }
+
+  if (cycle === 'custom' && customEnd && customEnd <= start) {
+    return toast('End date must be after start date', '⚠️');
   }
 
   const {
@@ -1524,13 +1537,7 @@ const end = calculateEndDate(start, cycle, customEnd);
   if (userError || !user) {
     return toast('User not logged in', '❌');
   }
-if (cycle === 'custom' && !customEnd) {
-  return toast('Select a custom end date', '⚠️');
-}
 
-if (cycle === 'custom' && customEnd && customEnd <= start) {
-  return toast('End date must be after start date', '⚠️');
-}
   const payload = {
     customer_id: customerId,
     type: type,
@@ -1541,9 +1548,9 @@ if (cycle === 'custom' && customEnd && customEnd <= start) {
     competitor_price: competitor,
     billing_cycle: cycle,
     duration: Math.max(
-  1,
-  Math.ceil((new Date(end) - new Date(start)) / 86400000)
-)
+      1,
+      Math.ceil((new Date(end) - new Date(start)) / 86400000)
+    )
   };
 
   let error;
