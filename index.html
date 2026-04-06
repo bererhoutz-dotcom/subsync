@@ -1232,12 +1232,17 @@ async function showApp() {
   await loadSubscriptionsFromSupabase();
   await loadPaymentsFromSupabase();
 
+  await autoRenewExpiredSubscriptions();
+  await loadSubscriptionsFromSupabase();
+  await loadPaymentsFromSupabase();
+
   populateCustomerSelects();
   navigate('dashboard');
   updateNotifBadge();
+
   setTimeout(() => {
-  showSmartAlerts();
-}, 800);
+    showSmartAlerts();
+  }, 800);
 }
 
 function navigate(page) {
@@ -1899,6 +1904,54 @@ async function renewSub(id) {
   toast('Subscription renewed!', '🔄');
 }
 
+async function autoRenewExpiredSubscriptions() {
+  const {
+    data: { user },
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError || !user) return;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const expiredSubs = state.subscriptions.filter(s => {
+    const endDate = new Date(s.end);
+    endDate.setHours(0, 0, 0, 0);
+    return endDate < today;
+  });
+
+  if (!expiredSubs.length) return;
+
+  for (const sub of expiredSubs) {
+    const durationDays = Number(sub.duration || 0);
+    if (!durationDays) continue;
+
+    let startDate = new Date(sub.start);
+    let endDate = new Date(sub.end);
+
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
+    while (endDate < today) {
+      startDate = new Date(endDate);
+      endDate = new Date(endDate);
+      endDate.setDate(endDate.getDate() + durationDays);
+    }
+
+    await supabaseClient
+      .from('subscriptions')
+      .update({
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0]
+      })
+      .eq('id', sub.id)
+      .eq('user_id', user.id);
+  }
+
+  await loadSubscriptionsFromSupabase();
+}
+
 function renderRevenueChart() {
   const canvas = document.getElementById('revenue-chart');
   if (!canvas) return;
@@ -1906,6 +1959,7 @@ function renderRevenueChart() {
   const ctx = canvas.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
+  if (!rect.width) return;
 
   canvas.width = rect.width * dpr;
   canvas.height = 120 * dpr;
