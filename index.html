@@ -1302,18 +1302,6 @@ function updateStats() {
   document.getElementById('s-profit').textContent = formatMoney(totalProfit);
 }
 
-    const paymentAmountInUSD =
-      p.currency === 'USD' ? p.amount :
-      p.currency === 'EUR' ? p.amount / (state.rates.EUR || 1) :
-      p.currency === 'MAD' ? p.amount / (state.rates.MAD || 1) :
-      p.amount;
-
-    return acc + (paymentAmountInUSD - Number(sub.cost || 0));
-  }, 0);
-
-  document.getElementById('s-profit').textContent = formatMoney(totalProfit);
-}
-
 function renderRecentSubs() {
   const tbody = document.getElementById('recent-subs-table');
   const recent = [...state.subscriptions].sort((a, b) => new Date(b.start) - new Date(a.start)).slice(0, 5);
