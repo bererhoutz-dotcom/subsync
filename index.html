@@ -790,12 +790,20 @@
   </div>
 
   <div class="form-group">
-    <label>Billing Cycle *</label>
-    <select class="form-control" id="s-cycle">
-      <option value="monthly">Monthly</option>
-      <option value="yearly">Yearly</option>
-    </select>
+    <label>Duration *</label>
+    <select class="form-control" id="s-cycle" onchange="handleCycleChange()">
+  <option value="1m">1 month</option>
+  <option value="3m">3 months</option>
+  <option value="6m">6 months</option>
+  <option value="1y">1 year</option>
+  <option value="2y">2 years</option>
+  <option value="custom">Custom</option>
+</select>
   </div>
+  <div class="form-group" id="custom-end-wrap" style="display:none;">
+  <label>Custom End Date *</label>
+  <input class="form-control" type="date" id="s-end-custom">
+</div>
 </div>
       <div class="divider"></div>
       <div class="form-row">
@@ -897,19 +905,34 @@ function calcProfitVal(sub) {
   return (parseFloat(sub.price) || 0) - (parseFloat(sub.cost) || 0);
 }
 
-function calculateEndDate(start, cycle) {
+function calculateEndDate(start, cycle, customEnd = '') {
   if (!start) return '';
+
+  if (cycle === 'custom') {
+    return customEnd || '';
+  }
+
   const date = new Date(start);
 
-  if (cycle === 'monthly') {
-    date.setMonth(date.getMonth() + 1);
-  }
-
-  if (cycle === 'yearly') {
-    date.setFullYear(date.getFullYear() + 1);
-  }
+  if (cycle === '1m') date.setMonth(date.getMonth() + 1);
+  if (cycle === '3m') date.setMonth(date.getMonth() + 3);
+  if (cycle === '6m') date.setMonth(date.getMonth() + 6);
+  if (cycle === '1y') date.setFullYear(date.getFullYear() + 1);
+  if (cycle === '2y') date.setFullYear(date.getFullYear() + 2);
 
   return date.toISOString().split('T')[0];
+}
+
+function handleCycleChange() {
+  const cycle = document.getElementById('s-cycle').value;
+  const customWrap = document.getElementById('custom-end-wrap');
+
+  if (cycle === 'custom') {
+    customWrap.style.display = 'block';
+  } else {
+    customWrap.style.display = 'none';
+    document.getElementById('s-end-custom').value = '';
+  }
 }
 
 function saveState() {
@@ -1482,8 +1505,9 @@ async function saveSubscription() {
   let type = document.getElementById('s-type').value;
   if (type === 'Custom') type = document.getElementById('s-type-custom').value.trim() || 'Custom';
 
-  const start = document.getElementById('s-start').value;
   const cycle = document.getElementById('s-cycle').value;
+const customEnd = document.getElementById('s-end-custom').value;
+const end = calculateEndDate(start, cycle, customEnd);
   const end = calculateEndDate(start, cycle);
   const cost = parseFloat(document.getElementById('s-cost').value) || 0;
   const price = parseFloat(document.getElementById('s-price').value) || 0;
@@ -1501,7 +1525,13 @@ async function saveSubscription() {
   if (userError || !user) {
     return toast('User not logged in', '❌');
   }
+if (cycle === 'custom' && !customEnd) {
+  return toast('Select a custom end date', '⚠️');
+}
 
+if (cycle === 'custom' && customEnd && customEnd <= start) {
+  return toast('End date must be after start date', '⚠️');
+}
   const payload = {
     customer_id: customerId,
     type: type,
@@ -1511,7 +1541,10 @@ async function saveSubscription() {
     sell_price: price,
     competitor_price: competitor,
     billing_cycle: cycle,
-    duration: cycle === 'yearly' ? 365 : 30
+    duration: Math.max(
+  1,
+  Math.ceil((new Date(end) - new Date(start)) / 86400000)
+)
   };
 
   let error;
@@ -1635,7 +1668,12 @@ function editSub(id) {
   document.getElementById('edit-sub-id').value = id;
   document.getElementById('s-customer').value = s.customerId;
   document.getElementById('s-start').value = s.start;
-  document.getElementById('s-cycle').value = s.billingCycle || 'monthly';
+  const allowedCycles = ['1m', '3m', '6m', '1y', '2y', 'custom'];
+const currentCycle = allowedCycles.includes(s.billingCycle) ? s.billingCycle : 'custom';
+
+document.getElementById('s-cycle').value = currentCycle;
+document.getElementById('s-end-custom').value = currentCycle === 'custom' ? s.end : '';
+handleCycleChange();
   document.getElementById('s-cost').value = s.cost;
   document.getElementById('s-price').value = s.price;
   document.getElementById('s-competitor').value = s.competitor || '';
@@ -2020,7 +2058,9 @@ function openSubModal() {
   document.getElementById('s-customer').value = '';
   document.getElementById('s-type').value = '';
   document.getElementById('s-start').value = '';
-  document.getElementById('s-cycle').value = 'monthly';
+  document.getElementById('s-cycle').value = '1m';
+document.getElementById('s-end-custom').value = '';
+handleCycleChange();
   document.getElementById('s-cost').value = '';
   document.getElementById('s-price').value = '';
   document.getElementById('s-competitor').value = '';
