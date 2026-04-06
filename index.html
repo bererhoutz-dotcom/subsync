@@ -994,6 +994,23 @@ function toast(msg, icon='ℹ️') {
   setTimeout(() => el.remove(), 3500);
 }
 
+function showSmartAlerts() {
+  const alerts = getNotifications();
+
+  if (!alerts.length) return;
+
+  const expiring = alerts.filter(a => a.type === 'warning' || a.type === 'due').length;
+  const expired = alerts.filter(a => a.type === 'error').length;
+
+  if (expired > 0) {
+    toast(`${expired} expired subscription${expired > 1 ? 's' : ''}`, '❌');
+  }
+
+  if (expiring > 0) {
+    toast(`${expiring} expiring soon`, '⚠️');
+  }
+}
+
 function switchTab(tab) {
   document.querySelectorAll('.auth-tab').forEach((t, i) => {
     t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'signup' && i === 1));
@@ -1210,6 +1227,9 @@ async function showApp() {
   populateCustomerSelects();
   navigate('dashboard');
   updateNotifBadge();
+  setTimeout(() => {
+  showSmartAlerts();
+}, 800);
 }
 
 function navigate(page) {
