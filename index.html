@@ -192,7 +192,12 @@
   .content { padding: 28px; }
 
   /* DASHBOARD */
-  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
   .stat-card {
     background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 20px; position: relative; overflow: hidden; transition: border-color 0.2s, transform 0.2s;
@@ -464,7 +469,7 @@
 
   <button class="btn btn-ghost btn-sm" onclick="toggleDark()">🌙 Theme</button>
 
-  <!-- 🔥 SELECTOR ديال العملة -->
+  <!-- 🔥 SELECTOR -->
   <select class="form-control" onchange="changeCurrency(this.value)">
     <option value="USD">USD $</option>
     <option value="EUR">EUR €</option>
@@ -673,30 +678,55 @@
   </div>
 
   <div class="stats-grid" style="margin-bottom:20px">
-    <div class="stat-card green">
-      <div class="stat-label">Total Revenue</div>
-      <div class="stat-value" id="a-revenue">$0</div>
-      <div class="stat-icon">💵</div>
-    </div>
-
-    <div class="stat-card purple">
-      <div class="stat-label">Total Profit</div>
-      <div class="stat-value" id="a-profit">$0</div>
-      <div class="stat-icon">📈</div>
-    </div>
-
-    <div class="stat-card blue">
-      <div class="stat-label">Avg Margin</div>
-      <div class="stat-value" id="a-margin">0%</div>
-      <div class="stat-icon">📐</div>
-    </div>
-
-    <div class="stat-card yellow">
-      <div class="stat-label">Retention</div>
-      <div class="stat-value" id="a-retention">0%</div>
-      <div class="stat-icon">🔄</div>
-    </div>
+  <div class="stat-card green">
+    <div class="stat-label">Total Revenue</div>
+    <div class="stat-value" id="a-revenue">$0</div>
+    <div class="stat-sub">All payments</div>
+    <div class="stat-icon">💵</div>
   </div>
+
+  <div class="stat-card purple">
+    <div class="stat-label">Total Profit</div>
+    <div class="stat-value" id="a-profit">$0</div>
+    <div class="stat-sub">Net earnings</div>
+    <div class="stat-icon">📈</div>
+  </div>
+
+  <div class="stat-card blue">
+    <div class="stat-label">Revenue (30d)</div>
+    <div class="stat-value" id="a-revenue-30">$0</div>
+    <div class="stat-sub">Last 30 days</div>
+    <div class="stat-icon">🗓️</div>
+  </div>
+
+  <div class="stat-card yellow">
+    <div class="stat-label">Avg Margin</div>
+    <div class="stat-value" id="a-margin">0%</div>
+    <div class="stat-sub">Across payments</div>
+    <div class="stat-icon">📐</div>
+  </div>
+
+  <div class="stat-card blue">
+    <div class="stat-label">Active Subs</div>
+    <div class="stat-value" id="a-active">0</div>
+    <div class="stat-sub">Currently active</div>
+    <div class="stat-icon">✅</div>
+  </div>
+
+  <div class="stat-card yellow">
+    <div class="stat-label">Expiring Soon</div>
+    <div class="stat-value" id="a-expiring">0</div>
+    <div class="stat-sub">Within 3 days</div>
+    <div class="stat-icon">⚠️</div>
+  </div>
+
+  <div class="stat-card purple">
+    <div class="stat-label">Retention</div>
+    <div class="stat-value" id="a-retention">0%</div>
+    <div class="stat-sub">Active vs total</div>
+    <div class="stat-icon">🔄</div>
+  </div>
+</div>
 
   <div class="analytics-grid">
     <div class="card">
@@ -2144,8 +2174,21 @@ function renderAnalytics() {
   const subs = state.subscriptions || [];
   const payments = state.payments || [];
 
+  const now = new Date();
+  const last30Days = new Date();
+  last30Days.setDate(now.getDate() - 30);
+
   const revenueUSD = payments.reduce((acc, p) => {
     return acc + Number(p.baseAmount || p.amount || 0);
+  }, 0);
+
+  const revenue30USD = payments.reduce((acc, p) => {
+    const paidDate = new Date(p.paidAt);
+    if (isNaN(paidDate.getTime())) return acc;
+    if (paidDate >= last30Days) {
+      return acc + Number(p.baseAmount || p.amount || 0);
+    }
+    return acc;
   }, 0);
 
   const profitUSD = payments.reduce((acc, p) => {
@@ -2157,18 +2200,25 @@ function renderAnalytics() {
 
   const avgMargin = revenueUSD > 0 ? Math.round((profitUSD / revenueUSD) * 100) : 0;
   const activeCount = subs.filter(s => getSubStatus(s) === 'Active').length;
+  const expiringCount = subs.filter(s => getSubStatus(s) === 'Expiring Soon').length;
   const retention = subs.length > 0 ? Math.round((activeCount / subs.length) * 100) : 0;
 
   const revenueEl = document.getElementById('a-revenue');
   const profitEl = document.getElementById('a-profit');
+  const revenue30El = document.getElementById('a-revenue-30');
   const marginEl = document.getElementById('a-margin');
+  const activeEl = document.getElementById('a-active');
+  const expiringEl = document.getElementById('a-expiring');
   const retentionEl = document.getElementById('a-retention');
   const statusEl = document.getElementById('status-breakdown');
   const topServicesEl = document.getElementById('top-services-chart');
 
   if (revenueEl) revenueEl.textContent = formatMoney(revenueUSD);
   if (profitEl) profitEl.textContent = formatMoney(profitUSD);
+  if (revenue30El) revenue30El.textContent = formatMoney(revenue30USD);
   if (marginEl) marginEl.textContent = avgMargin + '%';
+  if (activeEl) activeEl.textContent = activeCount;
+  if (expiringEl) expiringEl.textContent = expiringCount;
   if (retentionEl) retentionEl.textContent = retention + '%';
 
   const statuses = {
