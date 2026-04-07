@@ -2092,68 +2092,102 @@ function renderRevenueChart() {
 }
 
 function renderAnalytics() {
-  const subs = state.subscriptions;
+  const subs = state.subscriptions || [];
   const payments = state.payments || [];
 
   const revenueUSD = payments.reduce((acc, p) => {
-    return acc + Number(p.baseAmount || 0);
+    return acc + Number(p.baseAmount || p.amount || 0);
   }, 0);
 
   const profitUSD = payments.reduce((acc, p) => {
     const sub = subs.find(s => s.id === p.subscriptionId);
     if (!sub) return acc;
 
-    return acc + (Number(p.baseAmount || 0) - Number(sub.cost || 0));
+    return acc + (Number(p.baseAmount || p.amount || 0) - Number(sub.cost || 0));
   }, 0);
 
-  const avgMargin = revenueUSD ? Math.round((profitUSD / revenueUSD) * 100) : 0;
-  const active = subs.filter(s => getSubStatus(s) === 'Active').length;
-  const retention = subs.length ? Math.round((active / subs.length) * 100) : 0;
+  const avgMargin = revenueUSD > 0 ? Math.round((profitUSD / revenueUSD) * 100) : 0;
+  const activeCount = subs.filter(s => getSubStatus(s) === 'Active').length;
+  const retention = subs.length > 0 ? Math.round((activeCount / subs.length) * 100) : 0;
 
-  document.getElementById('a-revenue').textContent = formatMoney(revenueUSD);
-  document.getElementById('a-profit').textContent = formatMoney(profitUSD);
-  document.getElementById('a-margin').textContent = avgMargin + '%';
-  document.getElementById('a-retention').textContent = retention + '%';
+  const revenueEl = document.getElementById('a-revenue');
+  const profitEl = document.getElementById('a-profit');
+  const marginEl = document.getElementById('a-margin');
+  const retentionEl = document.getElementById('a-retention');
+  const statusEl = document.getElementById('status-breakdown');
+  const topServicesEl = document.getElementById('top-services-chart');
 
-  const byType = {};
-  subs.forEach(s => {
-    byType[s.type] = (byType[s.type] || 0) + 1;
+  if (revenueEl) revenueEl.textContent = formatMoney(revenueUSD);
+  if (profitEl) profitEl.textContent = formatMoney(profitUSD);
+  if (marginEl) marginEl.textContent = avgMargin + '%';
+  if (retentionEl) retentionEl.textContent = retention + '%';
+
+  const statuses = {
+    Active: 0,
+    'Expiring Soon': 0,
+    Expired: 0
+  };
+
+  subs.forEach(sub => {
+    const status = getSubStatus(sub);
+    statuses[status] = (statuses[status] || 0) + 1;
   });
 
-  const sorted = Object.entries(byType).sort((a, b) => b[1] - a[1]);
-  const max = sorted[0]?.[1] || 1;
-
-  document.getElementById('top-services-chart').innerHTML =
-    sorted.map(([type, count]) => `
-      <div class="bar-row">
-        <div class="bar-label">${SERVICES_EMOJI[type] || '⚙️'} ${type}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${(count / max) * 100}%"></div></div>
-        <div class="bar-val">${count}</div>
-      </div>
-    `).join('') || '<div style="color:var(--text3);font-size:13px">No data</div>';
-
-  const statuses = { Active: 0, 'Expiring Soon': 0, Expired: 0 };
-  subs.forEach(s => {
-    const st = getSubStatus(s);
-    statuses[st] = (statuses[st] || 0) + 1;
-  });
-
-  const colors = {
+  const statusColors = {
     Active: 'var(--green)',
     'Expiring Soon': 'var(--yellow)',
     Expired: 'var(--red)'
   };
 
-  document.getElementById('status-breakdown').innerHTML =
-    Object.entries(statuses).map(([s, n]) => `
-      <div style="margin-bottom:16px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
-          <span style="font-size:13px">${statusBadge(s)}</span>
-          <span style="font-size:13px;font-weight:600">${n}</span>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${subs.length ? (n / subs.length) * 100 : 0}%;background:${colors[s]}"></div></div>
-      </div>
-    `).join('');
+  if (statusEl) {
+    if (!subs.length) {
+      statusEl.innerHTML = '<div style="color:var(--text3);font-size:13px">No subscription data yet</div>';
+    } else {
+      statusEl.innerHTML = Object.entries(statuses).map(([status, count]) => {
+        const percent = subs.length ? (count / subs.length) * 100 : 0;
+
+        return `
+          <div style="margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:10px">
+              <span style="font-size:13px">${statusBadge(status)}</span>
+              <span style="font-size:13px;font-weight:700">${count}</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width:${percent}%;background:${statusColors[status]}"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  const byType = {};
+  subs.forEach(sub => {
+    const type = sub.type || 'Unknown';
+    byType[type] = (byType[type] || 0) + 1;
+  });
+
+  const sortedTypes = Object.entries(byType).sort((a, b) => b[1] - a[1]);
+  const maxTypeCount = sortedTypes[0]?.[1] || 1;
+
+  if (topServicesEl) {
+    if (!sortedTypes.length) {
+      topServicesEl.innerHTML = '<div style="color:var(--text3);font-size:13px">No service data yet</div>';
+    } else {
+      topServicesEl.innerHTML = sortedTypes.map(([type, count]) => {
+        const width = (count / maxTypeCount) * 100;
+        return `
+          <div class="bar-row">
+            <div class="bar-label">${SERVICES_EMOJI[type] || '⚙️'} ${type}</div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:${width}%"></div>
+            </div>
+            <div class="bar-val">${count}</div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
 
   renderRevenueChart();
 }
