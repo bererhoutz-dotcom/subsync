@@ -1984,31 +1984,43 @@ function renderRevenueChart() {
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
+  const parent = canvas.parentElement;
+  if (!parent) return;
+
+  const cssWidth = Math.max(parent.clientWidth - 10, 300);
+  const cssHeight = 260;
   const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.getBoundingClientRect();
-  if (!rect.width) return;
 
-  canvas.width = rect.width * dpr;
-  canvas.height = 120 * dpr;
+  canvas.style.width = cssWidth + 'px';
+  canvas.style.height = cssHeight + 'px';
+  canvas.width = cssWidth * dpr;
+  canvas.height = cssHeight * dpr;
+
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, cssWidth, cssHeight);
 
-  const width = rect.width;
-  const height = 120;
-
-  ctx.clearRect(0, 0, width, height);
+  const payments = state.payments || [];
+  const subs = state.subscriptions || [];
 
   const monthly = {};
+  payments.forEach(p => {
+    if (!p.paidAt) return;
 
-  (state.payments || []).forEach(p => {
-    const date = new Date(p.paidAt);
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const d = new Date(p.paidAt);
+    if (isNaN(d.getTime())) return;
+
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 
     if (!monthly[key]) {
-      monthly[key] = { revenue: 0, profit: 0 };
+      monthly[key] = {
+        revenue: 0,
+        profit: 0
+      };
     }
 
     const revenue = Number(p.baseAmount || p.amount || 0);
-    const sub = state.subscriptions.find(s => s.id === p.subscriptionId);
+    const sub = subs.find(s => s.id === p.subscriptionId);
     const cost = Number(sub?.cost || 0);
     const profit = revenue - cost;
 
@@ -2016,79 +2028,116 @@ function renderRevenueChart() {
     monthly[key].profit += profit;
   });
 
-  const entries = Object.entries(monthly).sort((a, b) => a[0].localeCompare(b[0])).slice(-6);
+  const entries = Object.entries(monthly)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .slice(-6);
 
   if (!entries.length) {
     ctx.fillStyle = '#9090a8';
-    ctx.font = '13px sans-serif';
-    ctx.fillText('No chart data yet', 12, 24);
+    ctx.font = '14px DM Sans, sans-serif';
+    ctx.fillText('No chart data yet', 20, 40);
     return;
   }
 
-  const labels = entries.map(([key]) => key);
-  const revenueData = entries.map(([, val]) => val.revenue);
-  const profitData = entries.map(([, val]) => val.profit);
+  const labels = entries.map(([key]) => {
+    const [year, month] = key.split('-');
+    const date = new Date(Number(year), Number(month) - 1, 1);
+    return date.toLocaleDateString('en-US', { month: 'short' });
+  });
 
-  const maxValue = Math.max(...revenueData, ...profitData, 1);
-  const left = 40;
-  const right = width - 10;
-  const top = 10;
-  const bottom = height - 25;
-  const chartWidth = right - left;
-  const chartHeight = bottom - top;
+  const revenueData = entries.map(([, val]) => Number(val.revenue || 0));
+  const profitData = entries.map(([, val]) => Number(val.profit || 0));
+
+  const allValues = [...revenueData, ...profitData];
+  const maxValue = Math.max(...allValues, 1);
+
+  const padding = { top: 20, right: 30, bottom: 45, left: 50 };
+  const chartWidth = cssWidth - padding.left - padding.right;
+  const chartHeight = cssHeight - padding.top - padding.bottom;
+
+  function getX(index) {
+    if (labels.length === 1) return padding.left + chartWidth / 2;
+    return padding.left + (chartWidth / (labels.length - 1)) * index;
+  }
+
+  function getY(value) {
+    return padding.top + chartHeight - (value / maxValue) * chartHeight;
+  }
 
   ctx.strokeStyle = 'rgba(255,255,255,0.08)';
   ctx.lineWidth = 1;
 
-  for (let i = 0; i < 5; i++) {
-    const y = top + (chartHeight / 4) * i;
+  for (let i = 0; i <= 4; i++) {
+    const y = padding.top + (chartHeight / 4) * i;
     ctx.beginPath();
-    ctx.moveTo(left, y);
-    ctx.lineTo(right, y);
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(cssWidth - padding.right, y);
     ctx.stroke();
+
+    const value = Math.round(maxValue - (maxValue / 4) * i);
+    ctx.fillStyle = '#70708a';
+    ctx.font = '11px DM Sans, sans-serif';
+    ctx.fillText(formatMoney(value), 6, y + 4);
   }
 
-  const getX = i => left + (chartWidth / Math.max(labels.length - 1, 1)) * i;
-  const getY = value => bottom - (value / maxValue) * chartHeight;
-
-  ctx.lineWidth = 2;
-
-  ctx.strokeStyle = '#38b6ff';
+  ctx.strokeStyle = 'rgba(255,255,255,0.10)';
   ctx.beginPath();
-  revenueData.forEach((value, i) => {
-    const x = getX(i);
-    const y = getY(value);
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
+  ctx.moveTo(padding.left, padding.top + chartHeight);
+  ctx.lineTo(cssWidth - padding.right, padding.top + chartHeight);
   ctx.stroke();
 
-  ctx.strokeStyle = '#22d398';
-  ctx.beginPath();
-  profitData.forEach((value, i) => {
-    const x = getX(i);
-    const y = getY(value);
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
-  ctx.stroke();
+  function drawLine(data, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+
+    data.forEach((value, i) => {
+      const x = getX(i);
+      const y = getY(value);
+
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+
+    ctx.stroke();
+
+    data.forEach((value, i) => {
+      const x = getX(i);
+      const y = getY(value);
+
+      ctx.beginPath();
+      ctx.fillStyle = color;
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  drawLine(revenueData, '#38b6ff');
+  drawLine(profitData, '#22d398');
 
   ctx.fillStyle = '#9090a8';
-  ctx.font = '11px sans-serif';
+  ctx.font = '12px DM Sans, sans-serif';
+
   labels.forEach((label, i) => {
     const x = getX(i);
-    ctx.fillText(label.slice(5), x - 12, height - 8);
+    ctx.textAlign = 'center';
+    ctx.fillText(label, x, cssHeight - 15);
   });
 
+  ctx.textAlign = 'left';
+
+  const legendY = 16;
+
   ctx.fillStyle = '#38b6ff';
-  ctx.fillRect(12, height - 18, 10, 10);
+  ctx.fillRect(cssWidth - 180, legendY, 12, 12);
   ctx.fillStyle = '#f0f0f5';
-  ctx.fillText('Revenue', 28, height - 9);
+  ctx.font = '12px DM Sans, sans-serif';
+  ctx.fillText('Revenue', cssWidth - 160, legendY + 10);
 
   ctx.fillStyle = '#22d398';
-  ctx.fillRect(100, height - 18, 10, 10);
+  ctx.fillRect(cssWidth - 90, legendY, 12, 12);
   ctx.fillStyle = '#f0f0f5';
-  ctx.fillText('Profit', 116, height - 9);
+  ctx.fillText('Profit', cssWidth - 70, legendY + 10);
 }
 
 function renderAnalytics() {
@@ -2456,6 +2505,11 @@ function init() {
 }
 
 init();
+window.addEventListener('resize', () => {
+  if (state.currentPage === 'analytics') {
+    renderRevenueChart();
+  }
+});
 </script>
 </body>
 </html>
