@@ -667,35 +667,62 @@
 </div>
 
         <!-- ANALYTICS PAGE -->
-        <div class="page" id="page-analytics">
-          <div class="page-header">
-            <div class="page-title">Analytics</div>
-          </div>
-          <div class="stats-grid" style="margin-bottom:20px">
-            <div class="stat-card green"><div class="stat-label">Total Revenue</div><div class="stat-value" id="a-revenue">$0</div><div class="stat-icon">💵</div></div>
-            <div class="stat-card purple"><div class="stat-label">Total Profit</div><div class="stat-value" id="a-profit">$0</div><div class="stat-icon">📈</div></div>
-            <div class="stat-card blue"><div class="stat-label">Avg Margin</div><div class="stat-value" id="a-margin">0%</div><div class="stat-icon">📐</div></div>
-            <div class="stat-card yellow"><div class="stat-label">Retention</div><div class="stat-value" id="a-retention">0%</div><div class="stat-icon">🔄</div></div>
-          </div>
-          <div class="analytics-grid">
-            <div class="card">
-              <div class="card-header"><div class="card-title">Subscription Status</div></div>
-              <div class="card-body" id="status-breakdown"></div>
-            </div>
-          </div>
-          <div class="card" style="margin-top:16px;">
-  <div class="card-header">
-    <div class="card-title">Revenue & Profit by Month</div>
+<div class="page" id="page-analytics">
+  <div class="page-header">
+    <div class="page-title">Analytics</div>
   </div>
-  <div class="card-body">
-    <canvas id="revenue-chart" height="120"></canvas>
+
+  <div class="stats-grid" style="margin-bottom:20px">
+    <div class="stat-card green">
+      <div class="stat-label">Total Revenue</div>
+      <div class="stat-value" id="a-revenue">$0</div>
+      <div class="stat-icon">💵</div>
+    </div>
+
+    <div class="stat-card purple">
+      <div class="stat-label">Total Profit</div>
+      <div class="stat-value" id="a-profit">$0</div>
+      <div class="stat-icon">📈</div>
+    </div>
+
+    <div class="stat-card blue">
+      <div class="stat-label">Avg Margin</div>
+      <div class="stat-value" id="a-margin">0%</div>
+      <div class="stat-icon">📐</div>
+    </div>
+
+    <div class="stat-card yellow">
+      <div class="stat-label">Retention</div>
+      <div class="stat-value" id="a-retention">0%</div>
+      <div class="stat-icon">🔄</div>
+    </div>
+  </div>
+
+  <div class="analytics-grid">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Subscription Status</div>
+      </div>
+      <div class="card-body" id="status-breakdown"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Top Services</div>
+      </div>
+      <div class="card-body" id="top-services-chart"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="card-header">
+      <div class="card-title">Revenue & Profit by Month</div>
+    </div>
+    <div class="card-body">
+      <canvas id="revenue-chart" height="120"></canvas>
+    </div>
   </div>
 </div>
-  <div class="card-body">
-    <canvas id="revenue-chart" height="120"></canvas>
-  </div>
-</div>
-        </div>
 
         <!-- NOTIFICATIONS PAGE -->
         <div class="page" id="page-notifications">
