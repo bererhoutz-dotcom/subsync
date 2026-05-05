@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SubSync — Subscription Reseller Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0a0a0f;
@@ -59,322 +59,43 @@
     transition: background 0.3s, color 0.3s;
   }
 
-  /* AUTH SCREEN */
-  #auth-screen {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg);
-    position: relative;
-    overflow: hidden;
-  }
-  #auth-screen::before {
-    content: '';
-    position: absolute;
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(108,99,255,0.15) 0%, transparent 70%);
-    top: -100px; left: -100px;
-    pointer-events: none;
-  }
-  #auth-screen::after {
-    content: '';
-    position: absolute;
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(34,211,152,0.08) 0%, transparent 70%);
-    bottom: -50px; right: -50px;
-    pointer-events: none;
-  }
-  .auth-box {
-    background: var(--bg2);
-    border: 1px solid var(--border2);
-    border-radius: 20px;
-    padding: 48px;
-    width: 440px;
-    max-width: 95vw;
-    position: relative;
-    z-index: 1;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.5);
-  }
-  .auth-logo {
-    display: flex; align-items: center; gap: 10px; margin-bottom: 32px;
-  }
-  .auth-logo .logo-icon {
-    width: 38px; height: 38px; background: var(--accent);
-    border-radius: 10px; display: flex; align-items: center; justify-content: center;
-    font-size: 18px; font-weight: 800; color: white; font-family: var(--font-display);
-  }
-  .auth-logo span { font-family: var(--font-display); font-size: 22px; font-weight: 700; }
-  .auth-title { font-family: var(--font-display); font-size: 26px; font-weight: 700; margin-bottom: 6px; }
-  .auth-sub { color: var(--text2); margin-bottom: 32px; }
-  .auth-tabs { display: flex; gap: 4px; background: var(--bg3); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 28px; }
-  .auth-tab {
-    flex: 1; padding: 8px; text-align: center; border-radius: 6px; cursor: pointer;
-    font-weight: 500; color: var(--text2); transition: all 0.2s;
-    font-family: var(--font-body);
-  }
-  .auth-tab.active { background: var(--bg2); color: var(--text); box-shadow: var(--shadow); }
-  .form-group { margin-bottom: 16px; }
-  .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
-  .form-control {
-    width: 100%; padding: 11px 14px; background: var(--bg3);
-    border: 1px solid var(--border); border-radius: var(--radius-sm);
-    color: var(--text); font-family: var(--font-body); font-size: 14px;
-    transition: border 0.2s, box-shadow 0.2s; outline: none;
-  }
-  .form-control:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-  select.form-control { cursor: pointer; }
-  .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-    padding: 10px 18px; border-radius: var(--radius-sm); border: none; cursor: pointer;
-    font-family: var(--font-body); font-size: 14px; font-weight: 500; transition: all 0.2s;
-  }
-  .btn-primary { background: var(--accent); color: white; }
-  .btn-primary:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 6px 20px var(--accent-glow); }
-  .btn-full { width: 100%; }
-  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
-  .btn-ghost:hover { border-color: var(--border2); color: var(--text); background: var(--bg3); }
-  .btn-danger { background: var(--red-bg); color: var(--red); border: 1px solid rgba(255,95,126,0.2); }
-  .btn-danger:hover { background: rgba(255,95,126,0.2); }
-  .btn-success { background: var(--green-bg); color: var(--green); border: 1px solid rgba(34,211,152,0.2); }
-  .btn-success:hover { background: rgba(34,211,152,0.2); }
-  .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
-
-  /* APP LAYOUT */
-  #app { display: none; min-height: 100vh; }
-  .layout { display: flex; min-height: 100vh; }
-
-  /* SIDEBAR */
-  .sidebar {
-    width: 240px; background: var(--bg2); border-right: 1px solid var(--border);
-    display: flex; flex-direction: column; position: fixed; top: 0; left: 0;
-    height: 100vh; z-index: 100; transition: transform 0.3s;
-  }
-  .sidebar-header {
-    padding: 22px 20px 16px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 10px;
-  }
-  .logo-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; color: white; font-family: var(--font-display); }
-  .logo-name { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
-  .nav { padding: 12px 10px; flex: 1; }
-  .nav-section { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 10px; margin: 14px 0 6px; }
-  .nav-item {
-    display: flex; align-items: center; gap: 10px; padding: 9px 12px;
-    border-radius: var(--radius-sm); cursor: pointer; color: var(--text2);
-    font-size: 13.5px; font-weight: 500; transition: all 0.15s; margin-bottom: 2px;
-  }
-  .nav-item:hover { background: var(--bg3); color: var(--text); }
-  .nav-item.active { background: var(--accent-glow); color: var(--accent2); }
-  .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
-  .nav-badge { margin-left: auto; background: var(--red); color: white; border-radius: 20px; padding: 1px 7px; font-size: 11px; font-weight: 600; }
-  .sidebar-footer { padding: 12px 10px; border-top: 1px solid var(--border); }
-  .user-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); }
-  .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: white; font-family: var(--font-display); flex-shrink: 0; }
-  .user-info .user-name { font-size: 13px; font-weight: 600; }
-  .user-info .user-role { font-size: 11px; color: var(--text3); }
-
-  /* MAIN */
-  .main { margin-left: 240px; flex: 1; min-height: 100vh; background: var(--bg); }
-  .topbar {
-    position: sticky; top: 0; z-index: 50; background: rgba(10,10,15,0.85);
-    backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
-    padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between;
-  }
-  .light .topbar { background: rgba(244,244,248,0.85); }
-  .topbar-left { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
-  .topbar-right { display: flex; align-items: center; gap: 10px; }
-  .icon-btn {
-    width: 34px; height: 34px; border-radius: var(--radius-sm); background: var(--bg3);
-    border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center;
-    justify-content: center; font-size: 16px; transition: all 0.15s; color: var(--text2);
-  }
-  .icon-btn:hover { background: var(--bg4); color: var(--text); }
-  .content { padding: 28px; }
-
-  /* DASHBOARD */
-  .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
-  margin-bottom: 28px;
-}
-  .stat-card {
-    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 20px; position: relative; overflow: hidden; transition: border-color 0.2s, transform 0.2s;
-  }
-  .stat-card:hover { border-color: var(--border2); transform: translateY(-2px); }
-  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
-  .stat-card.green::before { background: var(--green); }
-  .stat-card.blue::before { background: var(--blue); }
-  .stat-card.yellow::before { background: var(--yellow); }
-  .stat-card.purple::before { background: var(--accent); }
-  .stat-label { font-size: 12px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; }
-  .stat-value { font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 800; line-height: 1; margin-bottom: 6px; }
-  .stat-sub { font-size: 12px; color: var(--text3); }
-  .stat-icon { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 32px; opacity: 0.12; }
-
-  /* CARDS */
-  .card {
-    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
-    overflow: hidden;
-  }
-  .card-header {
-    padding: 18px 20px; border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .card-title { font-family: var(--font-display); font-size: 15px; font-weight: 700; }
-  .card-body { padding: 20px; }
-
-  /* TABLE */
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }
-  td { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13.5px; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--bg3); }
-  .badge {
-    display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
-    border-radius: 20px; font-size: 11.5px; font-weight: 600;
-  }
-  .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-  .badge-green { background: var(--green-bg); color: var(--green); }
-  .badge-yellow { background: var(--yellow-bg); color: var(--yellow); }
-  .badge-red { background: var(--red-bg); color: var(--red); }
-  .badge-blue { background: var(--blue-bg); color: var(--blue); }
-
-  /* PAGE SECTIONS */
-  .page { display: none; }
-  .page.active { display: block; }
-  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
-  .page-title { font-family: var(--font-display); font-size: 22px; font-weight: 800; }
-  .page-sub { color: var(--text2); font-size: 13px; margin-top: 2px; }
-
-  /* SEARCH + FILTER BAR */
-  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
-  .search-wrap { position: relative; flex: 1; max-width: 300px; }
-  .search-wrap input { padding-left: 34px; }
-  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 14px; }
-  .filter-select { padding: 9px 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-family: var(--font-body); font-size: 13px; cursor: pointer; outline: none; }
-  .filter-select:focus { border-color: var(--accent); }
-
-  /* MODAL */
-  .modal-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
-    z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--bg2); border: 1px solid var(--border2); border-radius: 18px;
-    width: 520px; max-width: 100%; max-height: 90vh; overflow-y: auto;
-    box-shadow: 0 32px 80px rgba(0,0,0,0.6);
-    animation: modalIn 0.25s cubic-bezier(.34,1.56,.64,1);
-  }
-  @keyframes modalIn { from { opacity: 0; transform: scale(0.94) translateY(10px); } to { opacity: 1; transform: none; } }
-  .modal-header { padding: 22px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .modal-title { font-family: var(--font-display); font-size: 17px; font-weight: 700; }
-  .modal-close { background: var(--bg3); border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; color: var(--text2); font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-  .modal-close:hover { background: var(--bg4); color: var(--text); }
-  .modal-body { padding: 22px 24px; }
-  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-
-  /* SUBSCRIPTION TYPES */
-  .sub-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
-  .sub-type-btn {
-    padding: 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
-    background: var(--bg3); cursor: pointer; text-align: center; font-size: 12px;
-    font-weight: 600; color: var(--text2); transition: all 0.15s; font-family: var(--font-body);
-  }
-  .sub-type-btn:hover, .sub-type-btn.selected { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
-  .sub-type-btn .sub-emoji { display: block; font-size: 22px; margin-bottom: 4px; }
-
-  /* PROFIT CALC */
-  .profit-calc {
-    background: var(--bg3); border-radius: var(--radius-sm); padding: 14px;
-    margin-top: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
-  }
-  .profit-item { text-align: center; }
-  .profit-item .label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
-  .profit-item .value { font-family: var(--font-display); font-size: 18px; font-weight: 700; }
-  .profit-item.good .value { color: var(--green); }
-  .profit-item.margin .value { color: var(--accent2); }
-
-  /* NOTIFICATIONS */
-  .notif-item {
-    display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border);
-    align-items: flex-start;
-  }
-  .notif-item:last-child { border-bottom: none; }
-  .notif-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
-  .notif-title { font-size: 13.5px; font-weight: 500; margin-bottom: 3px; }
-  .notif-sub { font-size: 12px; color: var(--text2); }
-  .notif-time { font-size: 11px; color: var(--text3); margin-left: auto; flex-shrink: 0; }
-
-  /* ANALYTICS */
-  .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-  .bar-chart { margin-top: 10px; }
-  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .bar-label { font-size: 12px; color: var(--text2); width: 80px; flex-shrink: 0; }
-  .bar-track { flex: 1; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 1s cubic-bezier(.4,0,.2,1); }
-  .bar-val { font-size: 12px; font-weight: 600; width: 45px; text-align: right; }
-
-  /* TOAST */
-  .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
-  .toast {
-    background: var(--bg2); border: 1px solid var(--border2); border-radius: 10px;
-    padding: 12px 16px; min-width: 260px; max-width: 340px;
-    display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow);
-    animation: toastIn 0.3s ease;
-  }
-  @keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
-  .toast-icon { font-size: 16px; flex-shrink: 0; }
-  .toast-msg { font-size: 13px; font-weight: 500; }
-
-  /* HAMBURGER */
-  .hamburger { display: none; }
-
-  /* EMPTY STATE */
-  .empty-state { text-align: center; padding: 60px 20px; }
-  .empty-icon { font-size: 48px; margin-bottom: 14px; opacity: 0.4; }
-  .empty-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--text2); margin-bottom: 6px; }
-  .empty-sub { font-size: 13px; color: var(--text3); }
-
-  /* INVOICE PREVIEW */
-  .invoice-preview { background: white; color: #111; padding: 32px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; }
-  .invoice-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
-  .invoice-brand { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #6c63ff; }
-  .invoice-number { font-size: 12px; color: #666; text-align: right; }
-  .invoice-number strong { display: block; font-size: 16px; color: #111; }
-  .invoice-details { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-  .invoice-section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: #999; margin-bottom: 4px; }
-  .invoice-section-val { font-size: 13px; color: #333; }
-  .invoice-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-  .invoice-table th { background: #f4f4f8; padding: 8px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #666; }
-  .invoice-table td { padding: 10px 12px; border-bottom: 1px solid #eee; font-size: 13px; }
-  .invoice-totals { text-align: right; }
-  .invoice-total-row { display: flex; justify-content: flex-end; gap: 60px; margin-bottom: 6px; font-size: 13px; }
-  .invoice-grand { font-size: 18px; font-weight: 700; color: #6c63ff; }
-
   /* RESPONSIVE */
-  @media (max-width: 900px) {
-    .stats-grid { grid-template-columns: 1fr 1fr; }
-    .analytics-grid { grid-template-columns: 1fr; }
-    .form-row { grid-template-columns: 1fr; }
+.landing-hero-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+  max-width: 650px; 
+  color: var(--text);
+}
+
+.landing-hero-title span {
+  display: block;
+  white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .landing-hero-title {
+    max-width: 100%;
   }
-  @media (max-width: 700px) {
-    .sidebar { transform: translateX(-100%); }
-    .sidebar.open { transform: none; }
-    .main { margin-left: 0; }
-    .hamburger { display: flex; }
-    .stats-grid { grid-template-columns: 1fr; }
-    .content { padding: 16px; }
+}
+
+@media (max-width: 700px) {
+  .landing-hero-title {
+    font-size: 34px;
+    line-height: 1.12;
+    max-width: 100%;
+    margin-left: 0;
   }
-  @media (max-width: 480px) {
-    .auth-box { padding: 28px 20px; }
-    .sub-types { grid-template-columns: repeat(2, 1fr); }
-    .profit-calc { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .landing-hero-title {
+    font-size: 30px;
   }
+}
 
   /* SCROLLBAR */
   ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -385,2181 +106,970 @@
   .fade-in { animation: fadeIn 0.4s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-  /* SEGMENT CONTROL */
-  .segment { display: flex; background: var(--bg3); border-radius: var(--radius-sm); padding: 3px; gap: 2px; }
-  .segment-btn { padding: 6px 14px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text2); transition: all 0.15s; font-family: var(--font-body); border: none; background: transparent; }
-  .segment-btn.active { background: var(--bg2); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+  html, body {
+  scroll-behavior: smooth;
+}
 
-  /* PROGRESS */
-  .progress-bar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
-  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+.logo-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed, #06b6d4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(99, 102, 241, 0.22);
+}
 
-  /* DIVIDER */
-  .divider { height: 1px; background: var(--border); margin: 16px 0; }
-  
-  /* WHATSAPP BTN */
-  .wa-btn { display: inline-flex; align-items: center; gap: 5px; color: #25D366; font-size: 12px; font-weight: 500; text-decoration: none; padding: 3px 8px; border-radius: 4px; background: rgba(37,211,102,0.1); transition: background 0.15s; }
-  .wa-btn:hover { background: rgba(37,211,102,0.2); }
+/* ===== LANDING POLISH ===== */
 
-  input[type=date].form-control::-webkit-calendar-picker-indicator { filter: invert(0.5); }
+#landing-screen {
+  min-height: auto !important;
+  padding-top: 56px !important;
+  padding-bottom: 96px !important;
+}
+
+.landing-section {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  margin-top: 100px;
+}
+
+.hero-preview-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 760px;
+  margin-left: auto;
+  border-radius: 24px;
+  overflow: hidden;
+  background: transparent;
+  box-shadow: none;
+  animation: none;
+}
+
+.landing-grid > div:last-child {
+  width: 100%;
+}
+
+.hero-preview-wrap::before {
+  content: none;
+}
+
+.hero-preview-wrap img {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 900px) {
+  .landing-grid {
+    gap: 28px;
+  }
+
+  .landing-hero-title {
+    max-width: 100%;
+  }
+
+  .hero-preview-img {
+    max-width: 100%;
+  }
+}
+
+/* ===== POLISH STEP 2 ===== */
+header {
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+}
+
+
+.landing-section:first-child {
+  margin-top: 24px;
+}
+
+.card-body {
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  header > div {
+    flex-wrap: wrap;
+  }
+
+  #landing-screen {
+    padding-top: 34px !important;
+    padding-bottom: 70px !important;
+  }
+
+  .landing-section {
+    margin-top: 80px;
+  }
+}
+
+/* ===== DEMO POLISH ===== */
+.demo-box {
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.demo-frame {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  box-shadow: 0 24px 70px rgba(0,0,0,0.28);
+}
+
+.demo-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(108,99,255,0.08), transparent 55%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.demo-image {
+  width: 100%;
+  display: block;
+  opacity: 0.88;
+}
+
+.demo-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.demo-play {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-size: 30px;
+  cursor: pointer;
+  box-shadow: 0 14px 40px rgba(108,99,255,0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.demo-play:hover {
+  transform: scale(1.06);
+  background: var(--accent2);
+  box-shadow: 0 18px 50px rgba(108,99,255,0.42);
+}
+
+.demo-caption {
+  position: absolute;
+  left: 22px;
+  bottom: 18px;
+  z-index: 2;
+  color: rgba(255,255,255,0.72);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+/* ===== FEATURES POLISH ===== */
+.features-grid-polish {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.feature-card-polish {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  min-height: 180px;
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.feature-card-polish:hover {
+  transform: translateY(-5px);
+  border-color: var(--border2);
+  box-shadow: 0 18px 45px rgba(0,0,0,0.22);
+}
+
+.feature-icon-polish {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(108,99,255,0.12);
+  font-size: 22px;
+  margin-bottom: 16px;
+}
+
+.feature-title-polish {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text);
+}
+
+.feature-text-polish {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text2);
+}
+
+@media (max-width: 1100px) {
+  .features-grid-polish {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .features-grid-polish {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== CTA POLISH ===== */
+.cta-box {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 48px 32px;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+
+}
+
+.cta-title {
+  font-size: 30px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.cta-text {
+  font-size: 15px;
+  color: var(--text2);
+  margin-bottom: 32px;
+}
+
+.cta-actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.cta-actions .btn {
+  padding: 14px 24px;
+}
+
+@media (max-width: 700px) {
+  .cta-box {
+  padding: 50px 40px;
+}
+
+  .cta-title {
+    font-size: 24px;
+  }
+}
+
+/* ===== NAVBAR POLISH ===== */
+@media (max-width: 700px) {
+  header {
+    padding: 12px 16px !important;
+  }
+
+  header > div {
+    flex-wrap: wrap;
+    justify-content: center !important;
+    gap: 14px !important;
+  }
+}
+
+/* ===== PRICING FINAL POLISH ===== */
+.pricing-grid-polish {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.pricing-card-polish {
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.pricing-card-polish:hover {
+  transform: translateY(-4px);
+  border-color: var(--border2);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+
+.pricing-card-polish.featured {
+  border: 2px solid var(--accent);
+  box-shadow: 0 18px 45px rgba(108,99,255,0.14);
+}
+
+.pricing-tag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+.pricing-tag.featured {
+  color: var(--accent);
+}
+
+.pricing-tag.success {
+  color: var(--green);
+}
+
+.pricing-name {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.pricing-price {
+  font-size: 34px;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+
+.pricing-price span {
+  font-size: 14px;
+  color: var(--text2);
+}
+
+.pricing-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px 0;
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.9;
+}
+
+.pricing-actions {
+  margin-top: auto;
+}
+
+@media (max-width: 1100px) {
+  .pricing-grid-polish {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .pricing-grid-polish {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== FINAL ANIMATIONS ===== */
+.hero-preview-wrap {
+  animation: none;
+}
+
+@keyframes floatPreview {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.feature-card-polish,
+.pricing-card-polish,
+.demo-frame,
+.cta-box {
+  animation: fadeUp 0.7s ease both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+#landing-pricing {
+  scroll-margin-top: 110px;
+}
+
+.landing-section p {
+  max-width: 520px;
+}
+
+.hero-preview-col {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.hero-preview-img {
+  width: 100%;
+  max-width: 100%;
+  display: block;
+  border-radius: 18px;
+  box-shadow: 0 28px 70px rgba(0,0,0,0.35);
+}
+
+.faq-container {
+  max-width: 700px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.faq-item {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.02);
+}
+
+.faq-question {
+  width: 100%;
+  text-align: left;
+  padding: 16px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--text);
+  border: none;
+  cursor: pointer;
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: all 0.3s ease;
+}
+
+.faq-answer.show {
+  max-height: 200px;
+  opacity: 1;
+  transform: translateY(0);
+  padding: 12px 18px 18px;
+  margin-top: 6px;
+}
+
+.faq-question {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.faq-question:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.faq-question.active {
+  color: #a78bfa;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(108,99,255,0.3);
+}
+
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+
+.landing-footer {
+  margin-top: 80px;
+  padding: 28px 0 36px;
+  border-top: 1px solid var(--border);
+}
+
+.landing-footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.landing-footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.landing-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.landing-footer-links a {
+  color: var(--text2);
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.landing-footer-links a:hover {
+  color: var(--text);
+}
+
+.landing-footer-copy {
+  margin-top: 14px;
+  color: var(--text3);
+  font-size: 12px;
+}
+
+.footer-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.landing-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.landing-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 56px;
+  align-items: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--accent2);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(108,99,255,0.3);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+
+.btn-ghost:hover {
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+}
+
+@media (max-width: 900px) {
+  .landing-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
 </style>
 </head>
 <body>
 
-<!-- AUTH -->
-<div id="auth-screen">
-  <div class="auth-box">
-    <div class="auth-logo">
+  <!-- LANDING PAGE -->
+   <!-- NAVBAR -->
+<header style="
+  position:sticky;
+  top:0;
+  z-index:1000;
+  backdrop-filter:blur(14px);
+  background:rgba(10,10,15,0.78);
+  border-bottom:1px solid var(--border);
+  padding:14px 24px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.18);
+">
+
+  <div style="
+    max-width:1200px;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+  ">
+
+    <!-- Logo -->
+    <div style="display:flex;align-items:center;gap:10px">
       <div class="logo-icon">S</div>
-      <span>SubSync</span>
+      <div style="font-family:var(--font-display);font-weight:800">SubSync</div>
     </div>
-    <h1 class="auth-title">Welcome back 👋</h1>
-    <p class="auth-sub">Manage your subscriptions smarter.</p>
-    <div class="auth-tabs">
-      <div class="auth-tab active" onclick="switchTab('login')">Sign In</div>
-      <div class="auth-tab" onclick="switchTab('signup')">Sign Up</div>
+
+    <!-- Links -->
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+      <a href="#landing-pricing" style="color:var(--text2);font-size:13px">Pricing</a>
+      <a href="app.html#login" class="btn btn-ghost">Login</a>
+      <a href="app.html#login" class="btn btn-primary">Get Started</a>
     </div>
-    <div id="login-form">
-      <div class="form-group"><label>Email</label><input class="form-control" type="email" id="login-email" placeholder="you@email.com" value=""></div>
-      <div class="form-group"><label>Password</label><input class="form-control" type="password" id="login-pass" placeholder="••••••••" value=""></div>
-      <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="doLogin()">Sign In →</button>
-      
+
+  </div>
+</header>
+<div id="landing-screen" style="background:var(--bg);position:relative;overflow:hidden;padding:40px 20px 80px">
+  <div style="position:absolute;inset:0;background:
+    radial-gradient(circle at top left, rgba(108,99,255,0.18), transparent 30%),
+    radial-gradient(circle at bottom right, rgba(34,211,152,0.10), transparent 30%);
+    pointer-events:none;">
+  </div>
+
+  <div class="landing-container">
+    <div class="landing-section" style="margin-top:20px">
+      <div class="landing-grid">
+
+        <!-- LEFT SIDE -->
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:var(--accent-glow);color:var(--accent2);font-size:12px;font-weight:700;margin-bottom:18px">
+            Subscription management for resellers
+          </div>
+
+          <h1 class="landing-hero-title">
+  <span>Run your subscription business</span>
+  <span>from one powerful dashboard.</span>
+</h1>
+
+          <p style="font-size:18px;color:var(--text2);max-width:620px;margin-bottom:26px">
+            SubSync helps you manage customers, monitor expiring subscriptions, track payments, and view clean analytics without the mess.
+          </p>
+
+          <div style="display:flex;gap:18px;flex-wrap:wrap;color:var(--text2);font-size:13px;margin-bottom:26px">
+            <span>✔ Manage customers</span>
+            <span>✔ Track payments</span>
+            <span>✔ Never miss renewals</span>
+            <span>✔ Clean analytics</span>
+          </div>
+
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:22px">
+            <a href="app.html#login" class="btn btn-primary" style="padding:14px 22px">
+              Start Free
+            </a>
+
+            <a href="#landing-pricing" class="btn btn-ghost">
+  View Pricing
+</a>
+          </div>
+
+          <div style="display:flex;gap:18px;flex-wrap:wrap;color:var(--text2);font-size:13px">
+            <span>✔ Customers</span>
+            <span>✔ Payments</span>
+            <span>✔ Email reminders</span>
+            <span>✔ Analytics</span>
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE -->
+<div class="hero-preview-col">
+  <div class="hero-preview-wrap">
+    <img
+      src="assets/dashboard-preview/dashboard-preview.png"
+      alt="SubSync Dashboard Preview"
+      class="hero-preview-img"
+    >
+  </div>
+</div>
+  </div>
+</div>
+<!-- DEMO SECTION -->
+<div class="landing-section">
+  <div style="text-align:center;margin-bottom:40px">
+    <h2 style="font-size:28px;font-weight:700;margin-bottom:10px">
+      See SubSync in action
+    </h2>
+    <p style="color:var(--text2);font-size:14px;max-width:600px;margin:0 auto">
+      Watch how you can manage customers, track subscriptions, and generate invoices in seconds.
+    </p>
+  </div>
+
+  <div class="demo-box">
+  <div class="demo-frame">
+    <img
+      src="https://dummyimage.com/1200x680/111118/9090a8&text=SubSync+Demo"
+      alt="SubSync Demo Preview"
+      class="demo-image"
+    >
+
+    <div class="demo-overlay">
+      <button class="demo-play">▶</button>
     </div>
-    <div id="signup-form" style="display:none">
-      <div class="form-group"><label>Full name</label><input class="form-control" type="text" id="su-name" placeholder="Your name"></div>
-      <div class="form-group"><label>Email</label><input class="form-control" type="email" id="su-email" placeholder="you@email.com"></div>
-      <div class="form-group"><label>Password</label><input class="form-control" type="password" id="su-pass" placeholder="Min. 8 characters"></div>
-      <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="doSignup()">Create Account →</button>
+
+    <div class="demo-caption">Product walkthrough preview</div>
+  </div>
+</div>
+</div>
+
+ <!-- FEATURES SECTION -->
+<div class="landing-section">
+  <div style="text-align:center;margin-bottom:40px">
+    <h2 style="font-size:28px;font-weight:700;margin-bottom:10px">
+      Everything you need to manage subscriptions
+    </h2>
+    <p style="color:var(--text2);font-size:14px">
+      Built for resellers who want clarity, not chaos.
+    </p>
+  </div>
+
+  <div class="features-grid-polish">
+
+    <div class="feature-card-polish">
+      <div class="feature-icon-polish">📦</div>
+      <div class="feature-title-polish">Subscription Tracking</div>
+      <div class="feature-text-polish">
+        Manage all subscriptions with start dates, renewals, and status in one place.
+      </div>
     </div>
+
+    <div class="feature-card-polish">
+      <div class="feature-icon-polish">💸</div>
+      <div class="feature-title-polish">Payments Management</div>
+      <div class="feature-text-polish">
+        Track payments, mark subscriptions as paid, and monitor revenue easily.
+      </div>
+    </div>
+
+    <div class="feature-card-polish">
+      <div class="feature-icon-polish">📊</div>
+      <div class="feature-title-polish">Analytics Dashboard</div>
+      <div class="feature-text-polish">
+        Visualize profit, revenue, and top services with clean charts.
+      </div>
+    </div>
+
+    <div class="feature-card-polish">
+      <div class="feature-icon-polish">🔔</div>
+      <div class="feature-title-polish">Smart Reminders</div>
+      <div class="feature-text-polish">
+        Get notified before subscriptions expire so you never miss renewals.
+      </div>
+    </div>
+
+  </div>
+</div>
+<!-- LANDING PRICING SECTION -->
+<div class="landing-section" id="landing-pricing">
+  <div style="text-align:center;margin-bottom:40px">
+    <h2 style="font-family:var(--font-display);font-size:32px;font-weight:800;margin-bottom:10px">
+      Simple pricing for every stage
+    </h2>
+    <p style="color:var(--text2);font-size:14px;max-width:620px;margin:0 auto">
+      Start free, upgrade when you grow, and keep your subscription business organized from day one.
+    </p>
+  </div>
+
+  <div class="pricing-grid-polish">
+
+    <div class="pricing-card-polish">
+      <div class="pricing-tag">Free</div>
+      <div class="pricing-name">Free</div>
+      <div class="pricing-price">$0 <span>/month</span></div>
+
+      <ul class="pricing-list">
+        <li>• Up to 10 customers</li>
+        <li>• Up to 10 subscriptions</li>
+        <li>• Basic dashboard</li>
+        <li>• Manual payment tracking</li>
+        <li>• Perfect to get started</li>
+      </ul>
+
+      <div class="pricing-actions">
+        <a href="app.html#login" class="btn btn-primary">Start Free</a>
+      </div>
+    </div>
+
+    <div class="pricing-card-polish">
+      <div class="pricing-tag">Starter</div>
+      <div class="pricing-name">Starter</div>
+      <div class="pricing-price">$7 <span>/month</span></div>
+
+      <ul class="pricing-list">
+        <li>• Unlimited customers</li>
+        <li>• Unlimited subscriptions</li>
+        <li>• Payments tracking</li>
+        <li>• Basic analytics</li>
+        <li>• Email reminders</li>
+      </ul>
+
+      <div class="pricing-actions">
+        <a href="app.html#login" class="btn btn-primary">Choose Starter</a>
+      </div>
+    </div>
+
+    <div class="pricing-card-polish featured">
+      <div class="pricing-tag featured">Most Popular</div>
+      <div class="pricing-name">Pro</div>
+      <div class="pricing-price">$15 <span>/month</span></div>
+
+      <ul class="pricing-list">
+        <li>• Everything in Starter</li>
+        <li>• Advanced analytics</li>
+        <li>• Invoice generator</li>
+        <li>• CSV export</li>
+        <li>• Priority updates</li>
+      </ul>
+
+      <div class="pricing-actions">
+        <a href="app.html#login" class="btn btn-primary" style="width:100%;justify-content:center;">Get Pro</a>
+      </div>
+    </div>
+
+   
   </div>
 </div>
 
-<!-- APP -->
-<div id="app">
-  <div class="layout">
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-header">
+<!-- FAQ SECTION -->
+<div class="landing-section">
+  <div style="text-align:center;margin-bottom:40px">
+    <h2 style="font-size:28px;font-weight:700;margin-bottom:10px">
+      Frequently asked questions
+    </h2>
+    <p style="color:var(--text2);font-size:14px">
+      Everything you need to know about SubSync
+    </p>
+  </div>
+
+  <div class="faq-container">
+
+    <div class="faq-item">
+      <button class="faq-question">
+        Is SubSync free to use?
+      </button>
+      <div class="faq-answer">
+        Yes, you can start with the free plan and upgrade anytime when you need more features.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question">
+        Can I track payments easily?
+      </button>
+      <div class="faq-answer">
+        Yes, SubSync allows you to track payments, mark them as paid, and monitor your revenue.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question">
+        Will I get reminders for renewals?
+      </button>
+      <div class="faq-answer">
+        Yes, you will receive reminders before subscriptions expire so you never miss renewals.
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <button class="faq-question">
+        Can I upgrade later?
+      </button>
+      <div class="faq-answer">
+        Absolutely, you can upgrade your plan anytime as your business grows.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- LANDING FINAL CTA -->
+<div class="landing-section">
+  <div class="cta-box">
+
+    <div class="cta-title">
+  Start managing your subscriptions like a pro.
+</div>
+
+<div class="cta-text">
+  Join resellers already using SubSync to track customers, payments, and renewals — all in one place.
+</div>
+
+    <div class="cta-actions">
+      <a href="app.html#login" class="btn btn-primary">Start Free</a>
+<a href="#landing-pricing" class="btn btn-ghost">View Pricing</a>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<footer class="landing-footer">
+  <div class="footer-shell">
+    <div class="landing-footer-inner">
+      <div class="landing-footer-brand">
         <div class="logo-icon">S</div>
-        <span class="logo-name">SubSync</span>
-      </div>
-      <nav class="nav">
-        <div class="nav-section">Main</div>
-        <div class="nav-item active" onclick="navigate('dashboard')"><span class="nav-icon">⊞</span> Dashboard</div>
-        <div class="nav-item" onclick="navigate('customers')"><span class="nav-icon">👥</span> Customers</div>
-        <div class="nav-item" onclick="navigate('subscriptions')"><span class="nav-icon">📦</span> Subscriptions</div>
-        <div class="nav-section">Finance</div>
-        <div class="nav-item" onclick="navigate('payments')">
-  <span class="nav-icon">💸</span> Payments
-</div>
-        <div class="nav-item" onclick="navigate('analytics')"><span class="nav-icon">📊</span> Analytics</div>
-        <div class="nav-section">Tools</div>
-        <div class="nav-item" onclick="navigate('notifications')"><span class="nav-icon">🔔</span> Notifications <span class="nav-badge" id="notif-badge">0</span></div>
-        <div class="nav-item" onclick="navigate('invoices')"><span class="nav-icon">🧾</span> Invoices</div>
-      </nav>
-      <div class="sidebar-footer">
-        <div class="user-row">
-          <div class="avatar" id="user-avatar">D</div>
-          <div class="user-info">
-            <div class="user-name" id="user-name-disp">Demo User</div>
-            <div class="user-role">Reseller</div>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;padding:0 12px 4px">
-
-  <button class="btn btn-ghost btn-sm" onclick="toggleDark()">🌙 Theme</button>
-
-  <!-- 🔥 SELECTOR -->
-  <select class="form-control" onchange="changeCurrency(this.value)">
-    <option value="USD">USD $</option>
-    <option value="EUR">EUR €</option>
-    <option value="MAD">MAD DH</option>
-  </select>
-
-  <button class="btn btn-ghost btn-sm" onclick="doLogout()">Exit</button>
-
-</div>
-      </div>
-    </aside>
-
-    <!-- Main -->
-    <main class="main">
-      <div class="topbar">
-        <div style="display:flex;align-items:center;gap:12px">
-          <button class="icon-btn hamburger" id="hamburger" onclick="toggleSidebar()">☰</button>
-          <div class="topbar-left" id="page-title">Dashboard</div>
-        </div>
-        <div class="topbar-right">
-          <button class="icon-btn" onclick="exportCSV()" title="Export CSV">⬇</button>
-          <button class="icon-btn" onclick="navigate('notifications')" title="Notifications">🔔</button>
-        </div>
+        <span>SubSync</span>
       </div>
 
-      <div class="content">
-
-        <!-- DASHBOARD PAGE -->
-        <!-- DASHBOARD PAGE -->
-<div class="page active fade-in" id="page-dashboard">
-  <div class="stats-grid">
-    <div class="stat-card blue">
-      <div class="stat-label">Total Customers</div>
-      <div class="stat-value" id="s-customers">0</div>
-      <div class="stat-sub">All time</div>
-      <div class="stat-icon">👥</div>
-    </div>
-    <div class="stat-card green">
-      <div class="stat-label">Active Subs</div>
-      <div class="stat-value" id="s-active">0</div>
-      <div class="stat-sub">Running now</div>
-      <div class="stat-icon">✅</div>
-    </div>
-    <div class="stat-card yellow">
-      <div class="stat-label">Expiring Soon</div>
-      <div class="stat-value" id="s-expiring">0</div>
-      <div class="stat-sub">Within 3 days</div>
-      <div class="stat-icon">⚠️</div>
-    </div>
-    <div class="stat-card purple">
-      <div class="stat-label">Total Profit</div>
-      <div class="stat-value" id="s-profit">$0</div>
-      <div class="stat-sub">Net earnings</div>
-      <div class="stat-icon">💰</div>
-    </div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Recent Subscriptions</div>
-        <button class="btn btn-ghost btn-sm" onclick="navigate('subscriptions')">View all</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Customer</th>
-              <th>Service</th>
-              <th>Status</th>
-              <th>Ends</th>
-            </tr>
-          </thead>
-          <tbody id="recent-subs-table">
-            <tr>
-              <td colspan="4">
-                <div class="empty-state">
-                  <div class="empty-icon">📦</div>
-                  <div class="empty-title">No subscriptions yet</div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="landing-footer-links">
+        <a href="#landing-pricing">Pricing</a>
+        <a href="app.html#login">Login</a>
+        <a href="app.html#login">Get Started</a>
       </div>
     </div>
 
-    <div style="display:grid;grid-template-rows:auto auto;gap:16px">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Alerts & Reminders</div>
-        </div>
-        <div class="card-body" id="dashboard-alerts">
-          <div class="empty-state">
-            <div class="empty-icon">✅</div>
-            <div class="empty-title">All clear!</div>
-            <div class="empty-sub">No urgent alerts</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Recent Payments</div>
-        </div>
-        <div class="card-body" id="recent-payments">
-          <div style="color:var(--text3);font-size:13px">No payments yet</div>
-        </div>
-      </div>
+    <div class="landing-footer-copy">
+      © 2026 SubSync. All rights reserved.
     </div>
   </div>
-</div>
-
-        <!-- CUSTOMERS PAGE -->
-        <div class="page" id="page-customers">
-          <div class="page-header">
-            <div>
-              <div class="page-title">Customers</div>
-              <div class="page-sub">Manage your customer base</div>
-            </div>
-            <button class="btn btn-primary" onclick="openModal('customer-modal')">+ Add Customer</button>
-          </div>
-          <div class="toolbar">
-            <div class="search-wrap">
-              <span class="search-icon">🔍</span>
-              <input class="form-control search-wrap" type="text" placeholder="Search customers..." id="customer-search" oninput="renderCustomers()" style="padding-left:34px">
-            </div>
-          </div>
-          <div class="card">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>name</th><th>Phone</th><th>Email</th><th>Subs</th><th>Notes</th><th>Actions</th></tr></thead>
-                <tbody id="customers-table"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- SUBSCRIPTIONS PAGE -->
-        <div class="page" id="page-subscriptions">
-          <div class="page-header">
-            <div>
-              <div class="page-title">Subscriptions</div>
-              <div class="page-sub">All subscription plans</div>
-            </div>
-            <button class="btn btn-primary" onclick="openModal('sub-modal')">+ New Subscription</button>
-          </div>
-          <div class="toolbar">
-            <div class="search-wrap">
-              <span class="search-icon">🔍</span>
-              <input class="form-control" type="text" placeholder="Search..." id="sub-search" oninput="renderSubs()" style="padding-left:34px">
-            </div>
-            <select class="filter-select" id="sub-filter" onchange="renderSubs()">
-              <option value="">All Status</option>
-              <option value="Active">Active</option>
-              <option value="Expiring Soon">Expiring Soon</option>
-              <option value="Expired">Expired</option>
-            </select>
-            <select class="filter-select" id="sub-type-filter" onchange="renderSubs()">
-              <option value="">All Types</option>
-              <option>Netflix</option><option>CapCut</option><option>ChatGPT</option>
-              <option>Spotify</option><option>Adobe</option><option>Custom</option>
-            </select>
-          </div>
-          <div class="card">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Customer</th><th>Service</th><th>Start</th><th>End</th><th>Cost</th><th>Price</th><th>Profit</th><th>PAYMENT</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="subs-table"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <!-- PAYMENTS PAGE -->
-<div class="page" id="page-payments">
-  <div class="page-header">
-    <div>
-      <div class="page-title">Payments</div>
-      <div class="page-sub">All payment history</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Customer</th>
-            <th>Service</th>
-            <th>Amount</th>
-            <th>Date</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="payments-table"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-        <!-- ANALYTICS PAGE -->
-<div class="page" id="page-analytics">
-  <div class="page-header">
-    <div class="page-title">Analytics</div>
-  </div>
-
-  <div class="stats-grid" style="margin-bottom:20px">
-  <div class="stat-card green">
-    <div class="stat-label">Total Revenue</div>
-    <div class="stat-value" id="a-revenue">$0</div>
-    <div class="stat-sub">All payments</div>
-    <div class="stat-icon">💵</div>
-  </div>
-
-  <div class="stat-card purple">
-    <div class="stat-label">Total Profit</div>
-    <div class="stat-value" id="a-profit">$0</div>
-    <div class="stat-sub">Net earnings</div>
-    <div class="stat-icon">📈</div>
-  </div>
-
-  <div class="stat-card blue">
-    <div class="stat-label">Revenue (30d)</div>
-    <div class="stat-value" id="a-revenue-30">$0</div>
-    <div class="stat-sub">Last 30 days</div>
-    <div class="stat-icon">🗓️</div>
-  </div>
-
-  <div class="stat-card yellow">
-    <div class="stat-label">Avg Margin</div>
-    <div class="stat-value" id="a-margin">0%</div>
-    <div class="stat-sub">Across payments</div>
-    <div class="stat-icon">📐</div>
-  </div>
-
-  <div class="stat-card blue">
-    <div class="stat-label">Active Subs</div>
-    <div class="stat-value" id="a-active">0</div>
-    <div class="stat-sub">Currently active</div>
-    <div class="stat-icon">✅</div>
-  </div>
-
-  <div class="stat-card yellow">
-    <div class="stat-label">Expiring Soon</div>
-    <div class="stat-value" id="a-expiring">0</div>
-    <div class="stat-sub">Within 3 days</div>
-    <div class="stat-icon">⚠️</div>
-  </div>
-
-  <div class="stat-card purple">
-    <div class="stat-label">Retention</div>
-    <div class="stat-value" id="a-retention">0%</div>
-    <div class="stat-sub">Active vs total</div>
-    <div class="stat-icon">🔄</div>
-  </div>
-</div>
-
-  <div class="analytics-grid">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Subscription Status</div>
-      </div>
-      <div class="card-body" id="status-breakdown"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Top Services</div>
-      </div>
-      <div class="card-body" id="top-services-chart"></div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-top:16px;">
-    <div class="card-header">
-      <div class="card-title">Revenue & Profit by Month</div>
-    </div>
-    <div class="card-body">
-      <canvas id="revenue-chart" height="120"></canvas>
-    </div>
-  </div>
-</div>
-
-        <!-- NOTIFICATIONS PAGE -->
-        <div class="page" id="page-notifications">
-          <div class="page-header">
-            <div class="page-title">Notifications</div>
-          </div>
-          <div class="card">
-            <div class="card-body" id="notifications-list">
-              <div class="empty-state"><div class="empty-icon">🔔</div><div class="empty-title">No notifications</div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- INVOICES PAGE -->
-        <div class="page" id="page-invoices">
-          <div class="page-header">
-            <div class="page-title">Invoice Generator</div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-            <div class="card">
-              <div class="card-header"><div class="card-title">Create Invoice</div></div>
-              <div class="card-body">
-                <div class="form-group"><label>Customer</label>
-                  <select class="form-control" id="inv-customer"><option value="">Select customer...</option></select>
-                </div>
-                <div class="form-group"><label>Subscription</label>
-                  <select class="form-control" id="inv-sub"><option value="">Select subscription...</option></select>
-                </div>
-                <div class="form-group"><label>Invoice Note</label>
-                  <input class="form-control" type="text" id="inv-note" placeholder="e.g. Monthly Netflix Plan">
-                </div>
-                <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="generateInvoice()">Generate Invoice →</button>
-              </div>
-            </div>
-            <div class="card">
-              <div class="card-header"><div class="card-title">Preview</div></div>
-              <div class="card-body" id="invoice-preview-area">
-                <div class="empty-state"><div class="empty-icon">🧾</div><div class="empty-title">Select customer & subscription</div></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </main>
-  </div>
-</div>
-
-<!-- MODALS -->
-
-<!-- Customer Modal -->
-<div class="modal-overlay" id="customer-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="customer-modal-title">Add Customer</div>
-      <button class="modal-close" onclick="closeModal('customer-modal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="edit-customer-id">
-      <div class="form-group"><label>Full name *</label><input class="form-control" id="c-name" placeholder="John Doe"></div>
-      <div class="form-group"><label>Phone / WhatsApp *</label><input class="form-control" id="c-phone" placeholder="+1 234 567 8900"></div>
-      <div class="form-group"><label>Email (optional)</label><input class="form-control" type="email" id="c-email" placeholder="john@example.com"></div>
-      <div class="form-group"><label>Notes</label><textarea class="form-control" id="c-notes" rows="3" placeholder="Any notes about this customer..."></textarea></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('customer-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveCustomer()">Save Customer</button>
-    </div>
-  </div>
-</div>
-
-<!-- Subscription Modal -->
-<div class="modal-overlay" id="sub-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="sub-modal-title">New Subscription</div>
-      <button class="modal-close" onclick="closeModal('sub-modal')">✕</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="edit-sub-id">
-      <div class="form-group"><label>Customer *</label>
-        <select class="form-control" id="s-customer"><option value="">Select customer...</option></select>
-      </div>
-      <div class="form-group"><label>Service</label>
-        <div class="sub-types" id="sub-type-picker">
-          <button class="sub-type-btn" onclick="pickSubType('Netflix',this)"><span class="sub-emoji">🎬</span>Netflix</button>
-          <button class="sub-type-btn" onclick="pickSubType('CapCut',this)"><span class="sub-emoji">✂️</span>CapCut</button>
-          <button class="sub-type-btn" onclick="pickSubType('ChatGPT',this)"><span class="sub-emoji">🤖</span>ChatGPT</button>
-          <button class="sub-type-btn" onclick="pickSubType('Spotify',this)"><span class="sub-emoji">🎵</span>Spotify</button>
-          <button class="sub-type-btn" onclick="pickSubType('Adobe',this)"><span class="sub-emoji">🎨</span>Adobe</button>
-          <button class="sub-type-btn" onclick="pickSubType('Custom',this)"><span class="sub-emoji">⚙️</span>Custom</button>
-        </div>
-        <input type="hidden" id="s-type" value="">
-        <input class="form-control" id="s-type-custom" placeholder="Custom service name" style="display:none;margin-top:8px">
-      </div>
-      <div class="form-row">
-  <div class="form-group">
-    <label>Start Date *</label>
-    <input class="form-control" type="date" id="s-start">
-  </div>
-
-  <div class="form-group">
-    <label>Duration *</label>
-    <select class="form-control" id="s-cycle" onchange="handleCycleChange()">
-  <option value="1m">1 month</option>
-  <option value="3m">3 months</option>
-  <option value="6m">6 months</option>
-  <option value="1y">1 year</option>
-  <option value="2y">2 years</option>
-  <option value="custom">Custom</option>
-</select>
-  </div>
-  <div class="form-group" id="custom-end-wrap" style="display:none;">
-  <label>Custom End Date *</label>
-  <input class="form-control" type="date" id="s-end-custom">
-</div>
-</div>
-      <div class="divider"></div>
-      <div class="form-row">
-        <div class="form-group"><label>Purchase Price ($)</label><input class="form-control" type="number" id="s-cost" placeholder="0.00" oninput="calcProfit()"></div>
-        <div class="form-group"><label>Selling Price ($)</label><input class="form-control" type="number" id="s-price" placeholder="0.00" oninput="calcProfit()"></div>
-      </div>
-      <div class="form-group"><label>Competitor Price ($)</label><input class="form-control" type="number" id="s-competitor" placeholder="0.00"></div>
-      <div class="profit-calc" id="profit-preview">
-        <div class="profit-item"><div class="label">Profit</div><div class="value" id="calc-profit">$0</div></div>
-        <div class="profit-item good"><div class="label">Net Gain</div><div class="value good" id="calc-net" style="color:var(--green)">$0</div></div>
-        <div class="profit-item margin"><div class="label">Margin</div><div class="value" id="calc-margin" style="color:var(--accent2)">0%</div></div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('sub-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveSubscription()">Save Subscription</button>
-    </div>
-  </div>
-</div>
-
-<!-- Toast Container -->
-<div class="toast-container" id="toast-container"></div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</footer>
 
 <script>
-const SUPABASE_URL = "https://wppssgbbdfrlzrvujtpq.supabase.co";
-const SUPABASE_KEY = "sb_publishable_KNRnq6GJ0wDJpWWDETbYbQ_69YKWiBT";
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-let state = {
-  user: null,
-  customers: [],
-  subscriptions: [],
-  payments: [],
-  darkMode: true,
-  currentPage: 'dashboard',
-  currency: 'USD',
-  rates: {
-    USD: 1,
-    EUR: 0.87,
-    MAD: 9.95
-  }
-};
-
-const SERVICES_EMOJI = {
-  Netflix:'🎬',
-  CapCut:'✂️',
-  ChatGPT:'🤖',
-  Spotify:'🎵',
-  Adobe:'🎨',
-  Custom:'⚙️'
-};
-
-function formatMoney(amount) {
-  const usdAmount = Number(amount || 0);
-  const rate = state.rates?.[state.currency] || 1;
-  const converted = usdAmount * rate;
-
-  return converted.toLocaleString('en-US', {
-    style: 'currency',
-    currency: state.currency || 'USD'
-  });
-}
-
-function fmt(n) {
-  return '$' + parseFloat(n || 0).toFixed(2);
-}
-
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function getCustomer(id) {
-  return state.customers.find(c => String(c.id) === String(id)) || {};
-}
-
-function getDaysLeft(end) {
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const e = new Date(end);
-  e.setHours(0,0,0,0);
-  return Math.ceil((e - today) / 86400000);
-}
-
-function getSubStatus(sub) {
-  const diff = getDaysLeft(sub.end);
-  if (diff < 0) return 'Expired';
-  if (diff <= 3) return 'Expiring Soon';
-  return 'Active';
-}
-
-function statusBadge(s) {
-  if (s === 'Active') return `<span class="badge badge-green">${s}</span>`;
-  if (s === 'Expiring Soon') return `<span class="badge badge-yellow">${s}</span>`;
-  return `<span class="badge badge-red">${s}</span>`;
-}
-
-function calcProfitVal(sub) {
-  return (parseFloat(sub.price) || 0) - (parseFloat(sub.cost) || 0);
-}
-
-function calculateEndDate(start, cycle, customEnd = '') {
-  if (!start) return '';
-
-  if (cycle === 'custom') {
-    return customEnd || '';
-  }
-
-  const date = new Date(start);
-
-  if (cycle === '1m') date.setMonth(date.getMonth() + 1);
-  if (cycle === '3m') date.setMonth(date.getMonth() + 3);
-  if (cycle === '6m') date.setMonth(date.getMonth() + 6);
-  if (cycle === '1y') date.setFullYear(date.getFullYear() + 1);
-  if (cycle === '2y') date.setFullYear(date.getFullYear() + 2);
-
-  return date.toISOString().split('T')[0];
-}
-
-function handleCycleChange() {
-  const cycle = document.getElementById('s-cycle').value;
-  const customWrap = document.getElementById('custom-end-wrap');
-
-  if (cycle === 'custom') {
-    customWrap.style.display = 'block';
-  } else {
-    customWrap.style.display = 'none';
-    document.getElementById('s-end-custom').value = '';
-  }
-}
-async function loadRates() {
-  try {
-    const res = await fetch('https://open.er-api.com/v6/latest/USD');
-    const data = await res.json();
-
-    if (data && data.rates) {
-      state.rates = data.rates;
-      state.rates.USD = 1;
-    }
-  } catch (error) {
-    console.log('Failed to load exchange rates', error);
-  }
-}
-
-function saveState() {
-  localStorage.setItem('subsync_state', JSON.stringify({
-    darkMode: state.darkMode,
-    currency: state.currency
-  }));
-}
-
-function applyTheme() {
-  document.body.classList.toggle('light', !state.darkMode);
-}
-
-function toggleDark() {
-  state.darkMode = !state.darkMode;
-  applyTheme();
-  saveState();
-}
-
-function changeCurrency(cur) {
-  state.currency = cur;
-  saveState();
-  renderDashboard();
-  renderSubs();
-  renderAnalytics();
-  renderPayments();
-}
-
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-}
-
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-
-function toast(msg, icon='ℹ️') {
-  const el = document.createElement('div');
-  el.className = 'toast';
-  el.innerHTML = `<span class="toast-icon">${icon}</span><span class="toast-msg">${msg}</span>`;
-  document.getElementById('toast-container').appendChild(el);
-  setTimeout(() => el.remove(), 3500);
-}
-
-function showSmartAlerts() {
-  const alerts = getNotifications();
-
-  if (!alerts.length) return;
-
-  const expiring = alerts.filter(a => a.type === 'warning' || a.type === 'due').length;
-  const expired = alerts.filter(a => a.type === 'error').length;
-
-  if (expired > 0) {
-    toast(`${expired} expired subscription${expired > 1 ? 's' : ''}`, '❌');
-  }
-
-  if (expiring > 0) {
-    toast(`${expiring} expiring soon`, '⚠️');
-  }
-}
-
-function switchTab(tab) {
-  document.querySelectorAll('.auth-tab').forEach((t, i) => {
-    t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'signup' && i === 1));
-  });
-  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
-  document.getElementById('signup-form').style.display = tab === 'signup' ? 'block' : 'none';
-}
-
-async function checkAuth() {
-  const { data, error } = await supabaseClient.auth.getSession();
-
-  if (error) {
-    console.log(error);
-    return;
-  }
-
-  const session = data.session;
-
-  if (session?.user) {
-    state.user = {
-      id: session.user.id,
-      name:
-        session.user.user_metadata?.full_name ||
-        session.user.email?.split('@')[0] ||
-        'User',
-      email: session.user.email
-    };
-
-    await showApp();
-  }
-}
-
-async function doLogin() {
-  const e = document.getElementById('login-email').value.trim();
-  const p = document.getElementById('login-pass').value;
-
-  if (!e || !p) return toast('Enter email and password', '⚠️');
-  if (!isValidEmail(e)) return toast('Enter a valid email', '⚠️');
-
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email: e,
-    password: p
-  });
-
-  if (error) {
-    console.log(error);
-    return toast(error.message || 'Login failed', '❌');
-  }
-
-  state.user = {
-    id: data.user.id,
-    name:
-      data.user.user_metadata?.full_name ||
-      data.user.email?.split('@')[0] ||
-      'User',
-    email: data.user.email
-  };
-
-  await showApp();
-  toast('Welcome back, ' + state.user.name + '!', '🎉');
-}
-
-async function doSignup() {
-  const n = document.getElementById('su-name').value.trim();
-  const e = document.getElementById('su-email').value.trim().toLowerCase();
-  const p = document.getElementById('su-pass').value;
-
-  if (!n || !e || !p) return toast('Fill all required fields', '⚠️');
-  if (!isValidEmail(e)) return toast('Enter a valid email', '⚠️');
-  if (p.length < 8) return toast('Password must be 8+ characters', '⚠️');
-
-  const { error } = await supabaseClient.auth.signUp({
-  email: e,
-  password: p,
-  options: {
-    data: { full_name: n },
-    emailRedirectTo: 'https://subsync-pro.netlify.app'
-  }
-});
-
-  if (error) {
-    console.log(error);
-    return toast(error.message || 'Signup failed', '❌');
-  }
-
-  toast('Account created. Check your email.', '📩');
-  switchTab('login');
-  document.getElementById('login-email').value = e;
-  document.getElementById('login-pass').value = '';
-}
-
-async function doLogout() {
-  const { error } = await supabaseClient.auth.signOut();
-
-  if (error) {
-    console.log(error);
-    return toast('Logout failed', '❌');
-  }
-
-  state.user = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('auth-screen').style.display = 'flex';
-}
-
-async function loadCustomersFromSupabase() {
-  const {
-    data: { user },
-    error: userError
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) {
-    console.log(userError);
-    return;
-  }
-
-  const { data, error } = await supabaseClient
-    .from('customers')
-    .select('id,name,phone,email,notes,user_id')
-    .eq('user_id', user.id);
-
-  if (error) {
-    console.log(error);
-    return;
-  }
-
-  state.customers = data.map(c => ({
-    id: c.id,
-    name: c.name || '',
-    phone: c.phone || '',
-    email: c.email || '',
-    notes: c.notes || ''
-  }));
-}
-
-async function loadSubscriptionsFromSupabase() {
-  const {
-    data: { user },
-    error: userError
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) {
-    console.log(userError);
-    return;
-  }
-
-  const { data, error } = await supabaseClient
-    .from('subscriptions')
-    .select('*')
-    .eq('user_id', user.id);
-
-  if (error) {
-    console.log(error);
-    return;
-  }
-
-  state.subscriptions = data.map(s => ({
-    id: s.id,
-    customerId: s.customer_id,
-    type: s.type,
-    start: s.start_date,
-    end: s.end_date,
-    cost: Number(s.buy_price || 0),
-    price: Number(s.sell_price || 0),
-    billingCycle: s.billing_cycle,
-    duration: s.duration,
-    competitor: Number(s.competitor_price || 0)
-  }));
-}
-
-async function loadPaymentsFromSupabase() {
-  const {
-    data: { user },
-    error: userError
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) {
-    console.log(userError);
-    return;
-  }
-
-  const { data, error } = await supabaseClient
-    .from('payments')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('paid_at', { ascending: false });
-
-  if (error) {
-    console.log(error);
-    return;
-  }
-
-  state.payments = data.map(p => ({
-  id: p.id,
-  subscriptionId: p.subscription_id,
-  amount: Number(p.amount || 0),
-  currency: p.currency || 'USD',
-  paidAt: p.paid_at,
-  fxRate: Number(p.fx_rate || 1),
-  baseAmount: Number(p.base_amount || p.amount || 0)
-}));
-}
-
-async function showApp() {
-  document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('user-name-disp').textContent = state.user?.name || 'User';
-  document.getElementById('user-avatar').textContent = (state.user?.name || 'U')[0].toUpperCase();
-
-  await loadRates();
-  await loadCustomersFromSupabase();
-  await loadSubscriptionsFromSupabase();
-  await loadPaymentsFromSupabase();
-
-  await autoRenewExpiredSubscriptions();
-  await loadSubscriptionsFromSupabase();
-  await loadPaymentsFromSupabase();
-
-  populateCustomerSelects();
-  navigate('dashboard');
-  updateNotifBadge();
-
-  setTimeout(() => {
-    showSmartAlerts();
-  }, 800);
-}
-
-function navigate(page) {
-  state.currentPage = page;
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-  const pg = document.getElementById('page-' + page);
-  if (pg) {
-    pg.classList.add('active');
-    pg.classList.add('fade-in');
-    setTimeout(() => pg.classList.remove('fade-in'), 400);
-  }
-
-  document.querySelectorAll('.nav-item').forEach(n => {
-    if (n.textContent.trim().toLowerCase().includes(page)) n.classList.add('active');
-  });
-
-  const titles = {
-    dashboard:'Dashboard',
-    customers:'Customers',
-    subscriptions:'Subscriptions',
-    payments:'Payments',
-    analytics:'Analytics',
-    notifications:'Notifications',
-    invoices:'Invoices'
-  };
-
-  document.getElementById('page-title').textContent = titles[page] || page;
-
-  if (page === 'dashboard') renderDashboard();
-  if (page === 'customers') renderCustomers();
-  if (page === 'subscriptions') renderSubs();
-  if (page === 'payments') renderPayments();
-  if (page === 'analytics') renderAnalytics();
-  if (page === 'notifications') renderNotifications();
-  if (page === 'invoices') populateInvoiceSelects();
-
-  const sb = document.getElementById('sidebar');
-  if (sb.classList.contains('open')) sb.classList.remove('open');
-}
-
-function updateStats() {
-  const subs = state.subscriptions;
-  const payments = state.payments || [];
-
-  document.getElementById('s-customers').textContent = state.customers.length;
-  document.getElementById('s-active').textContent = subs.filter(s => getSubStatus(s) === 'Active').length;
-  document.getElementById('s-expiring').textContent = subs.filter(s => getSubStatus(s) === 'Expiring Soon').length;
-
-  const totalProfit = payments.reduce((acc, p) => {
-    const sub = state.subscriptions.find(s => s.id === p.subscriptionId);
-    if (!sub) return acc;
-
-    return acc + (Number(p.baseAmount || 0) - Number(sub.cost || 0));
-  }, 0);
-
-  document.getElementById('s-profit').textContent = formatMoney(totalProfit);
-}
-
-function renderRecentSubs() {
-  const tbody = document.getElementById('recent-subs-table');
-  const recent = [...state.subscriptions].sort((a, b) => new Date(b.start) - new Date(a.start)).slice(0, 5);
-
-  if (!recent.length) {
-    tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">No subscriptions yet</div></div></td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = recent.map(s => {
-    const c = getCustomer(s.customerId);
-    const status = getSubStatus(s);
-    return `<tr><td><strong>${c.name || '?'}</strong></td><td>${SERVICES_EMOJI[s.type] || '⚙️'} ${s.type}</td><td>${statusBadge(status)}</td><td>${s.end}</td></tr>`;
-  }).join('');
-}
-
-function renderDashboardAlerts() {
-  const el = document.getElementById('dashboard-alerts');
-  const alerts = state.subscriptions.filter(s => getSubStatus(s) !== 'Active');
-
-  if (!alerts.length) {
-    el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-title">All clear!</div><div class="empty-sub">No urgent alerts</div></div>';
-    return;
-  }
-
-  el.innerHTML = alerts.map(s => {
-    const c = getCustomer(s.customerId);
-    const status = getSubStatus(s);
-    const days = getDaysLeft(s.end);
-    const color = status === 'Expiring Soon' ? 'var(--yellow)' : 'var(--red)';
-    const msg = status === 'Expired' ? `Expired ${Math.abs(days)} days ago` : `Expires in ${days} days`;
-
-    return `<div class="notif-item"><div class="notif-dot" style="background:${color}"></div><div><div class="notif-title">${c.name} — ${s.type}</div><div class="notif-sub">${msg}</div></div><button class="btn btn-success btn-sm" onclick="renewSub('${s.id}')">Renew</button></div>`;
-  }).join('');
-}
-
-function renderRecentPayments() {
-  const el = document.getElementById('recent-payments');
-  const recent = (state.payments || []).slice(0, 5);
-
-  if (!recent.length) {
-    el.innerHTML = '<div style="color:var(--text3);font-size:13px">No payments yet</div>';
-    return;
-  }
-
-  el.innerHTML = recent.map(p => {
-    const sub = state.subscriptions.find(s => s.id === p.subscriptionId);
-    const customer = state.customers.find(c => c.id === sub?.customerId);
-
-    return `<div class="notif-item"><div><div class="notif-title">${customer?.name || 'Unknown'} — ${sub?.type || 'Service'}</div><div class="notif-sub">${formatMoney(p.amount)} • ${new Date(p.paidAt).toLocaleDateString()}</div></div></div>`;
-  }).join('');
-}
-
-function renderDashboard() {
-  updateStats();
-  renderRecentSubs();
-  renderDashboardAlerts();
-  renderRecentPayments();
-  updateNotifBadge();
-}
-
-function renderCustomers() {
-  const q = (document.getElementById('customer-search') || {}).value?.toLowerCase() || '';
-  const list = state.customers.filter(c =>
-    c.name.toLowerCase().includes(q) ||
-    c.phone.includes(q) ||
-    (c.email || '').toLowerCase().includes(q)
-  );
-
-  const tbody = document.getElementById('customers-table');
-
-  if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">👥</div><div class="empty-title">No customers found</div><div class="empty-sub">Add your first customer above</div></div></td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = list.map(c => {
-    const subCount = state.subscriptions.filter(s => String(s.customerId) === String(c.id)).length;
-    const wa = (c.phone || '').replace(/\s/g,'').replace('+','');
-
-    return `<tr>
-      <td><strong>${c.name}</strong></td>
-      <td><a class="wa-btn" href="https://wa.me/${wa}" target="_blank">💬 ${c.phone}</a></td>
-      <td>${c.email || '<span style="color:var(--text3)">—</span>'}</td>
-      <td><span class="badge badge-blue">${subCount} subs</span></td>
-      <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text2)">${c.notes || '—'}</td>
-      <td>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-ghost btn-sm" onclick="editCustomer('${c.id}')">✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCustomer('${c.id}')">🗑</button>
-        </div>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-async function saveCustomer() {
-  const id = document.getElementById('edit-customer-id').value;
-  const name = document.getElementById('c-name').value.trim();
-  const phone = document.getElementById('c-phone').value.trim();
-  const email = document.getElementById('c-email').value.trim();
-  const notes = document.getElementById('c-notes').value.trim();
-
-  if (!name || !phone) return toast('Name and phone are required', '⚠️');
-  if (email && !isValidEmail(email)) return toast('Customer email is not valid', '⚠️');
-
-  const {
-    data: { user },
-    error: userError
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) {
-    return toast('User not logged in', '❌');
-  }
-
-  let error;
-
-  if (id) {
-    ({ error } = await supabaseClient
-      .from('customers')
-      .update({
-        name: name,
-        phone: phone,
-        email: email || null,
-        notes: notes || null
-      })
-      .eq('id', id)
-      .eq('user_id', user.id));
-  } else {
-    ({ error } = await supabaseClient
-      .from('customers')
-      .insert([{
-        user_id: user.id,
-        name: name,
-        phone: phone,
-        email: email || null,
-        notes: notes || null
-      }]));
-  }
-
-  if (error) {
-    console.log(error);
-    return toast('Error saving customer', '❌');
-  }
-
-  toast('Customer saved!', '✅');
-  closeModal('customer-modal');
-  await loadCustomersFromSupabase();
-  populateCustomerSelects();
-  renderCustomers();
-  renderDashboard();
-}
-
-function editCustomer(id) {
-  const c = state.customers.find(x => String(x.id) === String(id));
-  if (!c) return;
-
-  document.getElementById('edit-customer-id').value = id;
-  document.getElementById('c-name').value = c.name;
-  document.getElementById('c-phone').value = c.phone;
-  document.getElementById('c-email').value = c.email || '';
-  document.getElementById('c-notes').value = c.notes || '';
-  document.getElementById('customer-modal-title').textContent = 'Edit Customer';
-  openModal('customer-modal');
-}
-
-async function deleteCustomer(id) {
-  if (!confirm('Delete this customer? All their subscriptions will also be removed.')) return;
-
-  const {
-    data: { user },
-    error: userError
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) {
-    return toast('User not logged in', '❌');
-  }
-
-  const { error: subsError } = await supabaseClient
-    .from('subscriptions')
-    .delete()
-    .eq('customer_id', id)
-    .eq('user_id', user.id);
-
-  if (subsError) {
-    console.log(subsError);
-    return toast('Error deleting customer subscriptions', '❌');
-  }
-
-  const { error: customerError } = await supabaseClient
-    .from('customers')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', user.id);
-
-  if (customerError) {
-    console.log(customerError);
-    return toast('Error deleting customer', '❌');
-  }
-
-  await loadCustomersFromSupabase();
-  await loadSubscriptionsFromSupabase();
-  populateCustomerSelects();
-  renderCustomers();
-  renderSubs();
-  renderDashboard();
-  updateNotifBadge();
-  toast('Customer deleted successfully', '🗑️');
-}
-
-function populateCustomerSelects() {
-  const opts = state.customers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-  ['s-customer','inv-customer'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = '<option value="">Select customer...</option>' + opts;
-  });
-}
-
-let selectedSubType = '';
-
-function pickSubType(type, btn) {
-  selectedSubType = type;
-  document.getElementById('s-type').value = type;
-  document.querySelectorAll('.sub-type-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  document.getElementById('s-type-custom').style.display = type === 'Custom' ? 'block' : 'none';
-}
-
-function calcProfit() {
-  const cost = parseFloat(document.getElementById('s-cost').value) || 0;
-  const price = parseFloat(document.getElementById('s-price').value) || 0;
-  const profit = price - cost;
-  const margin = price ? Math.round((profit / price) * 100) : 0;
-
-  document.getElementById('calc-profit').textContent = formatMoney(cost);
-  document.getElementById('calc-net').textContent = formatMoney(profit);
-  document.getElementById('calc-margin').textContent = margin + '%';
-}
-
-async function saveSubscription() {
-  const eid = document.getElementById('edit-sub-id').value;
-  const customerId = document.getElementById('s-customer').value;
-  let type = document.getElementById('s-type').value;
-
-  if (type === 'Custom') {
-    type = document.getElementById('s-type-custom').value.trim() || 'Custom';
-  }
-
-  const start = document.getElementById('s-start').value;
-  const cycle = document.getElementById('s-cycle').value;
-  const customEnd = document.getElementById('s-end-custom').value;
-  const end = calculateEndDate(start, cycle, customEnd);
-
-  const cost = parseFloat(document.getElementById('s-cost').value) || 0;
-  const price = parseFloat(document.getElementById('s-price').value) || 0;
-  const competitor = parseFloat(document.getElementById('s-competitor').value) || 0;
-
-  if (!customerId || !type || !start || !end) {
-    return toast('Fill required fields', '⚠️');
-  }
-
-  if (cycle === 'custom' && !customEnd) {
-    return toast('Select a custom end date', '⚠️');
-  }
-
-  if (cycle === 'custom' && customEnd && customEnd <= start) {
-    return toast('End date must be after start date', '⚠️');
-  }
-
-  const {
-    data: { user },
-    error: userError
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) {
-    return toast('User not logged in', '❌');
-  }
-
-  const payload = {
-    customer_id: customerId,
-    type: type,
-    start_date: start,
-    end_date: end,
-    buy_price: cost,
-    sell_price: price,
-    competitor_price: competitor,
-    billing_cycle: cycle,
-    duration: Math.max(
-      1,
-      Math.ceil((new Date(end) - new Date(start)) / 86400000)
-    )
-  };
-
-  let error;
-
-  if (eid) {
-    ({ error } = await supabaseClient
-      .from('subscriptions')
-      .update(payload)
-      .eq('id', eid)
-      .eq('user_id', user.id));
-  } else {
-    ({ error } = await supabaseClient
-      .from('subscriptions')
-      .insert([{
-        user_id: user.id,
-        ...payload
-      }]));
-  }
-
-  if (error) {
-    console.log(error);
-    return toast('Error saving subscription', '❌');
-  }
-
-  toast('Subscription saved!', '✅');
-  closeModal('sub-modal');
-  await loadSubscriptionsFromSupabase();
-  renderSubs();
-  renderDashboard();
-}
-
-function renderSubs() {
-  const q = (document.getElementById('sub-search') || {}).value?.toLowerCase() || '';
-  const statusF = (document.getElementById('sub-filter') || {}).value || '';
-  const typeF = (document.getElementById('sub-type-filter') || {}).value || '';
-
-  const list = state.subscriptions.filter(s => {
-    const c = getCustomer(s.customerId);
-    const status = getSubStatus(s);
-    const match = !q || (c.name || '').toLowerCase().includes(q) || s.type.toLowerCase().includes(q);
-    const sMatch = !statusF || status === statusF;
-    const tMatch = !typeF || s.type === typeF;
-    return match && sMatch && tMatch;
-  });
-
-  const tbody = document.getElementById('subs-table');
-  if (!tbody) return;
-
-  if (!list.length) {
-  tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">No subscriptions found</div></div></td></tr>`;
-  return;
-}
-
-tbody.innerHTML = list.map(s => {
-  const c = getCustomer(s.customerId);
-  const status = getSubStatus(s);
-  const profit = calcProfitVal(s);
-  const days = getDaysLeft(s.end);
-
-  const lastPayment = (state.payments || [])
-    .filter(p => p.subscriptionId === s.id)
-    .sort((a, b) => new Date(b.paidAt) - new Date(a.paidAt))[0];
-
-  let isPaid = false;
-
-  if (lastPayment) {
-    const paymentDate = new Date(lastPayment.paidAt);
-    const endDate = new Date(s.end);
-    isPaid = paymentDate <= endDate;
-  }
-
-  return `
-    <tr>
-      <td><strong>${c.name || '?'}</strong></td>
-      <td>${SERVICES_EMOJI[s.type] || '⚙️'} ${s.type}</td>
-      <td>${s.start}</td>
-      <td style="color:${days <= 3 ? 'var(--yellow)' : days < 0 ? 'var(--red)' : 'inherit'}">${s.end}</td>
-      <td>${formatMoney(s.cost)}</td>
-      <td>${formatMoney(s.price)}</td>
-      <td style="color:${profit >= 0 ? 'var(--green)' : 'var(--red)'}"><strong>${formatMoney(profit)}</strong></td>
-      <td>
-  ${
-    isPaid
-      ? `<span style="color:lime">Paid until ${s.end}</span>`
-      : `<span style="color:red">Unpaid</span>`
-  }
-</td>
-      <td>${statusBadge(status)}</td>
-      <td>
-        <div style="display:flex;gap:4px">
-          <button class="btn btn-success btn-sm" onclick="markAsPaid('${s.id}')" title="Mark as Paid">💸</button>
-          <button class="btn btn-success btn-sm" onclick="renewSub('${s.id}')" title="Renew">🔄</button>
-          <button class="btn btn-ghost btn-sm" onclick="editSub('${s.id}')" title="Edit">✏️</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteSub('${s.id}')" title="Delete">🗑</button>
-        </div>
-      </td>
-    </tr>
-  `;
-}).join('');
-}
-
-function renderPayments() {
-  const tbody = document.getElementById('payments-table');
-  if (!tbody) return;
-
-  const payments = state.payments || [];
-
-  if (!payments.length) {
-    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">💸</div><div class="empty-title">No payments yet</div></div></td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = payments.map(p => {
-    const sub = state.subscriptions.find(s => s.id === p.subscriptionId);
-    const customer = state.customers.find(c => c.id === sub?.customerId);
-
-    return `
-      <tr>
-        <td><strong>${customer?.name || 'Unknown'}</strong></td>
-        <td>${sub?.type || 'Service'}</td>
-        <td>${formatMoney(p.amount)}</td>
-        <td>${new Date(p.paidAt).toLocaleDateString()}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="deletePayment('${p.id}')">🗑</button></td>
-      </tr>
-    `;
-  }).join('');
-}
-
-function editSub(id) {
-  const s = state.subscriptions.find(x => x.id === id);
-  if (!s) return;
-
-  document.getElementById('edit-sub-id').value = id;
-  document.getElementById('s-customer').value = s.customerId;
-  document.getElementById('s-start').value = s.start;
-  const allowedCycles = ['1m', '3m', '6m', '1y', '2y', 'custom'];
-const currentCycle = allowedCycles.includes(s.billingCycle) ? s.billingCycle : 'custom';
-
-document.getElementById('s-cycle').value = currentCycle;
-document.getElementById('s-end-custom').value = currentCycle === 'custom' ? s.end : '';
-handleCycleChange();
-  document.getElementById('s-cost').value = s.cost;
-  document.getElementById('s-price').value = s.price;
-  document.getElementById('s-competitor').value = s.competitor || '';
-  document.querySelectorAll('.sub-type-btn').forEach(b => b.classList.remove('selected'));
-  document.querySelectorAll('.sub-type-btn').forEach(b => {
-    if (b.textContent.includes(s.type)) b.classList.add('selected');
-  });
-  document.getElementById('s-type').value = s.type;
-  document.getElementById('sub-modal-title').textContent = 'Edit Subscription';
-  calcProfit();
-  openModal('sub-modal');
-}
-
-async function deleteSub(id) {
-  if (!confirm('Delete this subscription?')) return;
-
-  const {
-    data: { user },
-    error: userError
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) {
-    return toast('User not logged in', '❌');
-  }
-
-  const { error } = await supabaseClient
-    .from('subscriptions')
-    .delete()
-    .eq('id', id)
-    .eq('user_id', user.id);
-
-  if (error) {
-    console.log(error);
-    return toast('Error deleting subscription', '❌');
-  }
-
-  await loadSubscriptionsFromSupabase();
-  renderSubs();
-  renderDashboard();
-  updateNotifBadge();
-  toast('Subscription deleted', '🗑️');
-}
-
-async function markAsPaid(id) {
-  const sub = state.subscriptions.find(s => s.id === id);
-  if (!sub) return toast('Subscription not found', '❌');
-
-  const today = new Date().toISOString().split('T')[0];
-  const alreadyPaidToday = (state.payments || []).some(p => {
-    return p.subscriptionId === sub.id && p.paidAt && p.paidAt.startsWith(today);
-  });
-
-  if (alreadyPaidToday) {
-    return toast('Already marked as paid today', '⚠️');
-  }
-
-  const {
-    data: { user },
-    error: userError
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) {
-    return toast('User not logged in', '❌');
-  }
-
-  const rate = state.rates?.[state.currency] || 1;
-  const amount = Number(sub.price || 0);
-  const baseAmount = amount / rate;
-
-  const { error } = await supabaseClient
-    .from('payments')
-    .insert([{
-      user_id: user.id,
-      customer_id: sub.customerId,
-      subscription_id: sub.id,
-      amount: amount,
-      currency: state.currency || 'USD',
-      fx_rate: rate,
-      base_amount: baseAmount,
-      paid_at: new Date().toISOString()
-    }]);
-
-  if (error) {
-    console.log(error);
-    return toast('Error saving payment', '❌');
-  }
-
-  await loadPaymentsFromSupabase();
-  renderPayments();
-  renderDashboard();
-  renderAnalytics();
-  renderNotifications();
-  updateNotifBadge();
-  toast('Payment saved!', '💸');
-}
-
-async function deletePayment(paymentId) {
-  if (!paymentId) return toast('Payment not found', '❌');
-  if (!confirm('Delete this payment?')) return;
-
-  const {
-    data: { user },
-    error: userError
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) {
-    return toast('User not logged in', '❌');
-  }
-
-  const { error } = await supabaseClient
-    .from('payments')
-    .delete()
-    .eq('id', paymentId)
-    .eq('user_id', user.id);
-
-  if (error) {
-    console.log(error);
-    return toast('Error deleting payment', '❌');
-  }
-
-  await loadPaymentsFromSupabase();
-  renderPayments();
-  renderDashboard();
-  renderAnalytics();
-  toast('Payment deleted!', '🗑️');
-}
-
-async function renewSub(id) {
-  const s = state.subscriptions.find(x => x.id === id);
-  if (!s) return;
-
-  const oldEnd = new Date(s.end);
-  const duration = Math.ceil((new Date(s.end) - new Date(s.start)) / 86400000);
-  const today = new Date();
-  const newStart = today > oldEnd ? today : oldEnd;
-  const newEnd = new Date(newStart);
-  newEnd.setDate(newEnd.getDate() + duration);
-
-  const {
-    data: { user },
-    error: userError
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) {
-    return toast('User not logged in', '❌');
-  }
-
-  const { error } = await supabaseClient
-    .from('subscriptions')
-    .update({
-      start_date: newStart.toISOString().split('T')[0],
-      end_date: newEnd.toISOString().split('T')[0]
-    })
-    .eq('id', id)
-    .eq('user_id', user.id);
-
-  if (error) {
-    console.log(error);
-    return toast('Renew failed', '❌');
-  }
-
-  await loadSubscriptionsFromSupabase();
-  renderSubs();
-  renderDashboard();
-  renderNotifications();
-  updateNotifBadge();
-  toast('Subscription renewed!', '🔄');
-}
-
-async function autoRenewExpiredSubscriptions() {
-  const {
-    data: { user },
-    error: userError
-  } = await supabaseClient.auth.getUser();
-
-  if (userError || !user) return;
-
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const expiredSubs = state.subscriptions.filter(s => {
-    const endDate = new Date(s.end);
-    endDate.setHours(0, 0, 0, 0);
-    return endDate < today;
-  });
-
-  if (!expiredSubs.length) return;
-
-  for (const sub of expiredSubs) {
-    const durationDays = Number(sub.duration || 0);
-    if (!durationDays) continue;
-
-    let startDate = new Date(sub.start);
-    let endDate = new Date(sub.end);
-
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(0, 0, 0, 0);
-
-    while (endDate < today) {
-      startDate = new Date(endDate);
-      endDate = new Date(endDate);
-      endDate.setDate(endDate.getDate() + durationDays);
-    }
-
-    await supabaseClient
-      .from('subscriptions')
-      .update({
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate.toISOString().split('T')[0]
-      })
-      .eq('id', sub.id)
-      .eq('user_id', user.id);
-  }
-
-  await loadSubscriptionsFromSupabase();
-}
-
-function renderRevenueChart() {
-  const canvas = document.getElementById('revenue-chart');
-  if (!canvas) return;
-
-  const ctx = canvas.getContext('2d');
-  const parent = canvas.parentElement;
-  if (!parent) return;
-
-  const cssWidth = Math.max(parent.clientWidth - 10, 300);
-  const cssHeight = 260;
-  const dpr = window.devicePixelRatio || 1;
-
-  canvas.style.width = cssWidth + 'px';
-  canvas.style.height = cssHeight + 'px';
-  canvas.width = cssWidth * dpr;
-  canvas.height = cssHeight * dpr;
-
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.scale(dpr, dpr);
-  ctx.clearRect(0, 0, cssWidth, cssHeight);
-
-  const payments = state.payments || [];
-  const subs = state.subscriptions || [];
-
-  const monthly = {};
-  payments.forEach(p => {
-    if (!p.paidAt) return;
-
-    const d = new Date(p.paidAt);
-    if (isNaN(d.getTime())) return;
-
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-
-    if (!monthly[key]) {
-      monthly[key] = {
-        revenue: 0,
-        profit: 0
-      };
-    }
-
-    const revenue = Number(p.baseAmount || p.amount || 0);
-    const sub = subs.find(s => s.id === p.subscriptionId);
-    const cost = Number(sub?.cost || 0);
-    const profit = revenue - cost;
-
-    monthly[key].revenue += revenue;
-    monthly[key].profit += profit;
-  });
-
-  const entries = Object.entries(monthly)
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .slice(-6);
-
-  if (!entries.length) {
-    ctx.fillStyle = '#9090a8';
-    ctx.font = '14px DM Sans, sans-serif';
-    ctx.fillText('No chart data yet', 20, 40);
-    return;
-  }
-
-  const labels = entries.map(([key]) => {
-    const [year, month] = key.split('-');
-    const date = new Date(Number(year), Number(month) - 1, 1);
-    return date.toLocaleDateString('en-US', { month: 'short' });
-  });
-
-  const revenueData = entries.map(([, val]) => Number(val.revenue || 0));
-  const profitData = entries.map(([, val]) => Number(val.profit || 0));
-
-  const allValues = [...revenueData, ...profitData];
-  const maxValue = Math.max(...allValues, 1);
-
-  const padding = { top: 20, right: 30, bottom: 45, left: 50 };
-  const chartWidth = cssWidth - padding.left - padding.right;
-  const chartHeight = cssHeight - padding.top - padding.bottom;
-
-  function getX(index) {
-    if (labels.length === 1) return padding.left + chartWidth / 2;
-    return padding.left + (chartWidth / (labels.length - 1)) * index;
-  }
-
-  function getY(value) {
-    return padding.top + chartHeight - (value / maxValue) * chartHeight;
-  }
-
-  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-  ctx.lineWidth = 1;
-
-  for (let i = 0; i <= 4; i++) {
-    const y = padding.top + (chartHeight / 4) * i;
-    ctx.beginPath();
-    ctx.moveTo(padding.left, y);
-    ctx.lineTo(cssWidth - padding.right, y);
-    ctx.stroke();
-
-    const value = Math.round(maxValue - (maxValue / 4) * i);
-    ctx.fillStyle = '#70708a';
-    ctx.font = '11px DM Sans, sans-serif';
-    ctx.fillText(formatMoney(value), 6, y + 4);
-  }
-
-  ctx.strokeStyle = 'rgba(255,255,255,0.10)';
-  ctx.beginPath();
-  ctx.moveTo(padding.left, padding.top + chartHeight);
-  ctx.lineTo(cssWidth - padding.right, padding.top + chartHeight);
-  ctx.stroke();
-
-  function drawLine(data, color) {
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-
-    data.forEach((value, i) => {
-      const x = getX(i);
-      const y = getY(value);
-
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+document.querySelectorAll('.faq-question').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const answer = btn.nextElementSibling;
+
+    document.querySelectorAll('.faq-answer').forEach(a => {
+      if (a !== answer) a.classList.remove('show');
     });
 
-    ctx.stroke();
-
-    data.forEach((value, i) => {
-      const x = getX(i);
-      const y = getY(value);
-
-      ctx.beginPath();
-      ctx.fillStyle = color;
-      ctx.arc(x, y, 4, 0, Math.PI * 2);
-      ctx.fill();
+    document.querySelectorAll('.faq-question').forEach(q => {
+      q.classList.remove('active');
     });
-  }
 
-  drawLine(revenueData, '#38b6ff');
-  drawLine(profitData, '#22d398');
-
-  ctx.fillStyle = '#9090a8';
-  ctx.font = '12px DM Sans, sans-serif';
-
-  labels.forEach((label, i) => {
-    const x = getX(i);
-    ctx.textAlign = 'center';
-    ctx.fillText(label, x, cssHeight - 15);
+    answer.classList.toggle('show');
+    btn.classList.toggle('active');
   });
-
-  ctx.textAlign = 'left';
-
-  const legendY = 16;
-
-  ctx.fillStyle = '#38b6ff';
-  ctx.fillRect(cssWidth - 180, legendY, 12, 12);
-  ctx.fillStyle = '#f0f0f5';
-  ctx.font = '12px DM Sans, sans-serif';
-  ctx.fillText('Revenue', cssWidth - 160, legendY + 10);
-
-  ctx.fillStyle = '#22d398';
-  ctx.fillRect(cssWidth - 90, legendY, 12, 12);
-  ctx.fillStyle = '#f0f0f5';
-  ctx.fillText('Profit', cssWidth - 70, legendY + 10);
-}
-
-function renderAnalytics() {
-  const subs = state.subscriptions || [];
-  const payments = state.payments || [];
-
-  const now = new Date();
-  const last30Days = new Date();
-  last30Days.setDate(now.getDate() - 30);
-
-  const revenueUSD = payments.reduce((acc, p) => {
-    return acc + Number(p.baseAmount || p.amount || 0);
-  }, 0);
-
-  const revenue30USD = payments.reduce((acc, p) => {
-    const paidDate = new Date(p.paidAt);
-    if (isNaN(paidDate.getTime())) return acc;
-    if (paidDate >= last30Days) {
-      return acc + Number(p.baseAmount || p.amount || 0);
-    }
-    return acc;
-  }, 0);
-
-  const profitUSD = payments.reduce((acc, p) => {
-    const sub = subs.find(s => s.id === p.subscriptionId);
-    if (!sub) return acc;
-
-    return acc + (Number(p.baseAmount || p.amount || 0) - Number(sub.cost || 0));
-  }, 0);
-
-  const avgMargin = revenueUSD > 0 ? Math.round((profitUSD / revenueUSD) * 100) : 0;
-  const activeCount = subs.filter(s => getSubStatus(s) === 'Active').length;
-  const expiringCount = subs.filter(s => getSubStatus(s) === 'Expiring Soon').length;
-  const retention = subs.length > 0 ? Math.round((activeCount / subs.length) * 100) : 0;
-
-  const revenueEl = document.getElementById('a-revenue');
-  const profitEl = document.getElementById('a-profit');
-  const revenue30El = document.getElementById('a-revenue-30');
-  const marginEl = document.getElementById('a-margin');
-  const activeEl = document.getElementById('a-active');
-  const expiringEl = document.getElementById('a-expiring');
-  const retentionEl = document.getElementById('a-retention');
-  const statusEl = document.getElementById('status-breakdown');
-  const topServicesEl = document.getElementById('top-services-chart');
-
-  if (revenueEl) revenueEl.textContent = formatMoney(revenueUSD);
-  if (profitEl) profitEl.textContent = formatMoney(profitUSD);
-  if (revenue30El) revenue30El.textContent = formatMoney(revenue30USD);
-  if (marginEl) marginEl.textContent = avgMargin + '%';
-  if (activeEl) activeEl.textContent = activeCount;
-  if (expiringEl) expiringEl.textContent = expiringCount;
-  if (retentionEl) retentionEl.textContent = retention + '%';
-
-  const statuses = {
-    Active: 0,
-    'Expiring Soon': 0,
-    Expired: 0
-  };
-
-  subs.forEach(sub => {
-    const status = getSubStatus(sub);
-    statuses[status] = (statuses[status] || 0) + 1;
-  });
-
-  const statusColors = {
-    Active: 'var(--green)',
-    'Expiring Soon': 'var(--yellow)',
-    Expired: 'var(--red)'
-  };
-
-  if (statusEl) {
-    if (!subs.length) {
-      statusEl.innerHTML = '<div style="color:var(--text3);font-size:13px">No subscription data yet</div>';
-    } else {
-      statusEl.innerHTML = Object.entries(statuses).map(([status, count]) => {
-        const percent = subs.length ? (count / subs.length) * 100 : 0;
-
-        return `
-          <div style="margin-bottom:16px">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:10px">
-              <span style="font-size:13px">${statusBadge(status)}</span>
-              <span style="font-size:13px;font-weight:700">${count}</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width:${percent}%;background:${statusColors[status]}"></div>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-  }
-
-  const byType = {};
-  subs.forEach(sub => {
-    const type = sub.type || 'Unknown';
-    byType[type] = (byType[type] || 0) + 1;
-  });
-
-  const sortedTypes = Object.entries(byType).sort((a, b) => b[1] - a[1]);
-  const maxTypeCount = sortedTypes[0]?.[1] || 1;
-
-  if (topServicesEl) {
-    if (!sortedTypes.length) {
-      topServicesEl.innerHTML = '<div style="color:var(--text3);font-size:13px">No service data yet</div>';
-    } else {
-      topServicesEl.innerHTML = sortedTypes.map(([type, count]) => {
-        const width = (count / maxTypeCount) * 100;
-        return `
-          <div class="bar-row">
-            <div class="bar-label">${SERVICES_EMOJI[type] || '⚙️'} ${type}</div>
-            <div class="bar-track">
-              <div class="bar-fill" style="width:${width}%"></div>
-            </div>
-            <div class="bar-val">${count}</div>
-          </div>
-        `;
-      }).join('');
-    }
-  }
-
-  renderRevenueChart();
-}
-
-function getNotifications() {
-  const alerts = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  state.subscriptions.forEach(s => {
-    const c = getCustomer(s.customerId);
-
-    const endDate = new Date(s.end);
-    endDate.setHours(0, 0, 0, 0);
-
-    const days = Math.ceil((endDate - today) / 86400000);
-
-    const lastPayment = (state.payments || [])
-      .filter(p => p.subscriptionId === s.id)
-      .sort((a, b) => new Date(b.paidAt) - new Date(a.paidAt))[0];
-
-    let isPaid = false;
-
-    if (lastPayment) {
-      const paymentDate = new Date(lastPayment.paidAt);
-      paymentDate.setHours(0, 0, 0, 0);
-      isPaid = paymentDate <= endDate;
-    }
-
-    if (isPaid && days >= 0) return;
-
-    if (days === 0) {
-      alerts.push({
-        type: 'due',
-        title: `${c.name} — ${s.type}`,
-        msg: 'Expires today',
-        time: s.end,
-        subId: s.id
-      });
-      return;
-    }
-
-    if (days > 0 && days <= 3) {
-      alerts.push({
-        type: 'warning',
-        title: `${c.name} — ${s.type}`,
-        msg: `Expires in ${days} day${days === 1 ? '' : 's'}`,
-        time: s.end,
-        subId: s.id
-      });
-      return;
-    }
-
-    if (days < 0) {
-      alerts.push({
-        type: 'error',
-        title: `${c.name} — ${s.type}`,
-        msg: `Expired ${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'} ago`,
-        time: s.end,
-        subId: s.id
-      });
-    }
-  });
-
-  return alerts.sort((a, b) => new Date(a.time) - new Date(b.time));
-}
-
-function updateNotifBadge() {
-  const count = getNotifications().length;
-  document.getElementById('notif-badge').textContent = count;
-  document.getElementById('notif-badge').style.display = count ? '' : 'none';
-}
-
-function renderNotifications() {
-  const alerts = getNotifications();
-  const el = document.getElementById('notifications-list');
-
-  if (!alerts.length) {
-    el.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">✅</div>
-        <div class="empty-title">No notifications</div>
-        <div class="empty-sub">Everything is up to date</div>
-      </div>`;
-    return;
-  }
-
-  el.innerHTML = alerts.map(a => {
-    let color = 'var(--yellow)';
-    if (a.type === 'error') color = 'var(--red)';
-    if (a.type === 'due') color = 'var(--blue)';
-
-    return `
-      <div class="notif-item">
-        <div class="notif-dot" style="background:${color}"></div>
-
-        <div style="flex:1">
-          <div class="notif-title">${a.title}</div>
-          <div class="notif-sub">${a.msg}</div>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:8px">
-          <span class="notif-time">${a.time}</span>
-          <button class="btn btn-success btn-sm"
-            onclick="markAsPaid('${a.subId}');renderNotifications();updateNotifBadge()">
-            💸 Pay
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-function populateInvoiceSelects() {
-  populateCustomerSelects();
-
-  document.getElementById('inv-customer').onchange = function() {
-    const cid = this.value;
-    const subs = state.subscriptions.filter(s => String(s.customerId) === String(cid));
-
-    document.getElementById('inv-sub').innerHTML =
-      '<option value="">Select subscription...</option>' +
-      subs.map(s => `<option value="${s.id}">${s.type} (${s.start} → ${s.end})</option>`).join('');
-  };
-}
-
-function generateInvoice() {
-  const cid = document.getElementById('inv-customer').value;
-  const sid = document.getElementById('inv-sub').value;
-  const note = document.getElementById('inv-note').value || 'Subscription Service';
-
-  if (!cid || !sid) return toast('Select customer and subscription','⚠️');
-
-  const c = getCustomer(cid);
-  const s = state.subscriptions.find(x => x.id === sid);
-  if (!c || !s) return;
-
-  const invNum = 'INV-' + Date.now().toString().slice(-6);
-  const today = new Date().toISOString().split('T')[0];
-
-  document.getElementById('invoice-preview-area').innerHTML = `
-    <div class="invoice-preview">
-      <div class="invoice-header-row">
-        <div><div class="invoice-brand">SubSync</div><div style="font-size:12px;color:#666;margin-top:4px">Subscription Reseller</div></div>
-        <div class="invoice-number"><span>Invoice</span><strong>${invNum}</strong><span style="display:block;font-size:11px;color:#999;margin-top:4px">Date: ${today}</span></div>
-      </div>
-      <div class="invoice-details">
-        <div><div class="invoice-section-label">Bill To</div><div class="invoice-section-val"><strong>${c.name}</strong><br>${c.phone}${c.email ? '<br>' + c.email : ''}</div></div>
-        <div><div class="invoice-section-label">Service Period</div><div class="invoice-section-val">${s.start} → ${s.end}</div></div>
-      </div>
-      <table class="invoice-table">
-        <thead><tr><th>Description</th><th>Service</th><th>Amount</th></tr></thead>
-        <tbody>
-          <tr><td>${note}</td><td>${SERVICES_EMOJI[s.type] || '⚙️'} ${s.type}</td><td><strong>${formatMoney(parseFloat(s.price || 0))}</strong></td></tr>
-        </tbody>
-      </table>
-      <div class="invoice-totals">
-        <div class="invoice-total-row"><span style="color:#666">Subtotal</span><span>${formatMoney(parseFloat(s.price || 0))}</span></div>
-        <div class="invoice-total-row invoice-grand"><span>Total Due</span><span>${formatMoney(parseFloat(s.price || 0))}</span></div>
-      </div>
-      <div style="margin-top:24px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#999;text-align:center">Thank you for your business! — SubSync</div>
-    </div>
-    <button class="btn btn-primary btn-full" style="margin-top:14px" onclick="printInvoice()">🖨 Print / Save PDF</button>
-  `;
-
-  toast('Invoice generated!','🧾');
-}
-
-function printInvoice() {
-  window.print();
-}
-
-function exportCSV() {
-  const rows = [['Name','Phone','Email','Subscription','Type','Start','End','Cost','Price','Profit','Status']];
-
-  state.subscriptions.forEach(s => {
-    const c = getCustomer(s.customerId);
-    rows.push([c.name, c.phone, c.email || '', s.type, s.type, s.start, s.end, s.cost, s.price, calcProfitVal(s).toFixed(2), getSubStatus(s)]);
-  });
-
-  const csv = rows.map(r => r.map(v => JSON.stringify(v)).join(',')).join('\n');
-  const blob = new Blob([csv], { type:'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'subsync-export.csv';
-  a.click();
-
-  toast('CSV exported!','⬇️');
-}
-
-function openCustomerModal() {
-  document.getElementById('edit-customer-id').value = '';
-  document.getElementById('c-name').value = '';
-  document.getElementById('c-phone').value = '';
-  document.getElementById('c-email').value = '';
-  document.getElementById('c-notes').value = '';
-  document.getElementById('customer-modal-title').textContent = 'Add Customer';
-  openModal('customer-modal');
-}
-
-function openSubModal() {
-  populateCustomerSelects();
-  document.getElementById('edit-sub-id').value = '';
-  document.getElementById('s-customer').value = '';
-  document.getElementById('s-type').value = '';
-  document.getElementById('s-start').value = new Date().toISOString().split('T')[0];
-  document.getElementById('s-cycle').value = '1m';
-document.getElementById('s-end-custom').value = '';
-handleCycleChange();
-  document.getElementById('s-cost').value = '';
-  document.getElementById('s-price').value = '';
-  document.getElementById('s-competitor').value = '';
-  document.getElementById('s-type-custom').value = '';
-  document.getElementById('s-type-custom').style.display = 'none';
-  document.querySelectorAll('.sub-type-btn').forEach(b => b.classList.remove('selected'));
-  document.getElementById('calc-profit').textContent = formatMoney(0);
-  document.getElementById('calc-net').textContent = formatMoney(0);
-  document.getElementById('calc-margin').textContent = '0%';
-  document.getElementById('sub-modal-title').textContent = 'New Subscription';
-  selectedSubType = '';
-  openModal('sub-modal');
-}
-
-document.getElementById('customer-modal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeModal('customer-modal');
-});
-
-document.getElementById('sub-modal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeModal('sub-modal');
-});
-
-document.querySelector('[onclick="openModal(\'customer-modal\')"]').setAttribute('onclick', 'openCustomerModal()');
-document.querySelector('[onclick="openModal(\'sub-modal\')"]').setAttribute('onclick', 'openSubModal()');
-
-document.addEventListener('click', e => {
-  const sb = document.getElementById('sidebar');
-  const hb = document.getElementById('hamburger');
-  if (sb.classList.contains('open') && !sb.contains(e.target) && e.target !== hb) sb.classList.remove('open');
-});
-
-supabaseClient.auth.onAuthStateChange(async (event, session) => {
-  if (session?.user) {
-    state.user = {
-      id: session.user.id,
-      name:
-        session.user.user_metadata?.full_name ||
-        session.user.email?.split('@')[0] ||
-        'User',
-      email: session.user.email
-    };
-  } else {
-    state.user = null;
-  }
-});
-
-function init() {
-  const saved = localStorage.getItem('subsync_state');
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    state.darkMode = parsed.darkMode !== undefined ? parsed.darkMode : true;
-    state.currency = parsed.currency || 'USD';
-  }
-
-  applyTheme();
-  checkAuth();
-}
-
-init();
-window.addEventListener('resize', () => {
-  if (state.currentPage === 'analytics') {
-    renderRevenueChart();
-  }
 });
 </script>
+
+
 </body>
 </html>

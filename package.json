@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "supabase": "^2.85.0"
+  },
+  "dependencies": {
+    "recharts": "^3.8.1"
+  }
+}
