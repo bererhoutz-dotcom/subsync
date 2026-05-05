@@ -1,0 +1,5 @@
+node_modules/
+.env
+supabase/bin/
+supabase/temp/
+supabase/.temp/
