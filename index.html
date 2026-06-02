@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SubSync — Subscription Reseller Dashboard</title>
+<meta name="description" content="SubSync helps resellers manage customers, subscriptions, payments, and renewals from one powerful dashboard.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap" rel="stylesheet">
 <style>
@@ -84,16 +86,23 @@
 
 @media (max-width: 700px) {
   .landing-hero-title {
-    font-size: 34px;
-    line-height: 1.12;
+    font-size: 26px;
+    line-height: 1.2;
     max-width: 100%;
     margin-left: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .landing-hero-title span {
+    white-space: normal;
+    display: block;
   }
 }
 
 @media (max-width: 480px) {
   .landing-hero-title {
-    font-size: 30px;
+    font-size: 24px;
+    line-height: 1.22;
   }
 }
 
@@ -216,49 +225,65 @@ header {
   border: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
   box-shadow: 0 24px 70px rgba(0,0,0,0.28);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .demo-frame::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, rgba(108,99,255,0.08), transparent 55%);
+  background: radial-gradient(circle at center, rgba(108,99,255,0.12), transparent 60%);
+  opacity: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: 1;
+  transition: opacity 0.3s ease;
+}
+
+.demo-frame:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 35px 90px rgba(0,0,0,0.4);
+}
+
+.demo-frame:hover::before {
+  opacity: 1;
 }
 
 .demo-image {
   width: 100%;
   display: block;
-  opacity: 0.88;
+  opacity: 0.92;
 }
 
-.demo-overlay {
+.demo-video-wrap {
+  position: relative;
+}
+
+.demo-play-btn {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-}
-
-.demo-play {
-  width: 86px;
-  height: 86px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   border: none;
   background: var(--accent);
   color: white;
   font-size: 30px;
   cursor: pointer;
-  box-shadow: 0 14px 40px rgba(108,99,255,0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  box-shadow: 0 20px 50px rgba(108,99,255,0.4);
+  z-index: 5;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
 }
 
-.demo-play:hover {
-  transform: scale(1.06);
+.demo-play-btn:hover {
+  transform: translate(-50%, -50%) scale(1.08);
   background: var(--accent2);
-  box-shadow: 0 18px 50px rgba(108,99,255,0.42);
+  box-shadow: 0 24px 60px rgba(108,99,255,0.5);
+}
+
+.demo-play-btn.hide {
+  display: none;
 }
 
 .demo-caption {
@@ -548,6 +573,10 @@ header {
 
 .faq-question {
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
   text-align: left;
   padding: 16px 18px;
   font-size: 14px;
@@ -556,6 +585,28 @@ header {
   color: var(--text);
   border: none;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.faq-question:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.faq-question.active {
+  color: #a78bfa;
+}
+
+.faq-icon {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--text2);
+  transition: transform 0.25s ease, color 0.25s ease;
+  flex-shrink: 0;
+}
+
+.faq-question.active .faq-icon {
+  color: #a78bfa;
+  transform: rotate(45deg);
 }
 
 .faq-answer {
@@ -574,19 +625,6 @@ header {
   margin-top: 6px;
 }
 
-.faq-question {
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.faq-question:hover {
-  background: rgba(255,255,255,0.03);
-}
-
-.faq-question.active {
-  color: #a78bfa;
-}
-
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(108,99,255,0.3);
@@ -596,10 +634,9 @@ header {
   background: rgba(255,255,255,0.05);
 }
 
-
 .landing-footer {
-  margin-top: 80px;
-  padding: 28px 0 36px;
+  margin-top: 48px;
+  padding: 22px 0 24px;
   border-top: 1px solid var(--border);
 }
 
@@ -707,6 +744,33 @@ header {
   }
 }
 
+.demo-video-wrap {
+  position: relative;
+}
+
+.demo-play-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-size: 30px;
+  cursor: pointer;
+
+  box-shadow: 0 20px 50px rgba(108,99,255,0.4);
+  z-index: 5;
+}
+
+.demo-play-btn.hide {
+  display: none;
+}
+
 </style>
 </head>
 <body>
@@ -791,12 +855,12 @@ header {
 </a>
           </div>
 
-          <div style="display:flex;gap:18px;flex-wrap:wrap;color:var(--text2);font-size:13px">
-            <span>✔ Customers</span>
-            <span>✔ Payments</span>
-            <span>✔ Email reminders</span>
-            <span>✔ Analytics</span>
-          </div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;color:var(--text2);font-size:13px;margin-top:10px;margin-bottom:18px">
+  <span>✔ Customers</span>
+  <span>✔ Payments</span>
+  <span>✔ Email reminders</span>
+  <span>✔ Analytics</span>
+</div>
         </div>
 
         <!-- RIGHT SIDE -->
@@ -824,17 +888,15 @@ header {
 
   <div class="demo-box">
   <div class="demo-frame">
-    <img
-      src="https://dummyimage.com/1200x680/111118/9090a8&text=SubSync+Demo"
-      alt="SubSync Demo Preview"
-      class="demo-image"
-    >
+    <div class="demo-video-wrap">
+  <video class="demo-image" id="demo-video" preload="metadata" poster="videos/demo-poster.png">
+  <source src="videos/subsync-demo.mp4" type="video/mp4">
+</video>
 
-    <div class="demo-overlay">
-      <button class="demo-play">▶</button>
-    </div>
-
-    <div class="demo-caption">Product walkthrough preview</div>
+  <button id="demo-play-btn" class="demo-play-btn">
+  ▶
+</button>
+</div>
   </div>
 </div>
 </div>
@@ -972,7 +1034,8 @@ header {
 
     <div class="faq-item">
       <button class="faq-question">
-        Is SubSync free to use?
+        <span>Is SubSync free to use?</span>
+        <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
         Yes, you can start with the free plan and upgrade anytime when you need more features.
@@ -981,7 +1044,8 @@ header {
 
     <div class="faq-item">
       <button class="faq-question">
-        Can I track payments easily?
+        <span>Can I track payments easily?</span>
+        <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
         Yes, SubSync allows you to track payments, mark them as paid, and monitor your revenue.
@@ -990,7 +1054,8 @@ header {
 
     <div class="faq-item">
       <button class="faq-question">
-        Will I get reminders for renewals?
+        <span>Will I get reminders for renewals?</span>
+        <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
         Yes, you will receive reminders before subscriptions expire so you never miss renewals.
@@ -999,7 +1064,8 @@ header {
 
     <div class="faq-item">
       <button class="faq-question">
-        Can I upgrade later?
+        <span>Can I upgrade later?</span>
+        <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
         Absolutely, you can upgrade your plan anytime as your business grows.
@@ -1068,6 +1134,19 @@ document.querySelectorAll('.faq-question').forEach(btn => {
     btn.classList.toggle('active');
   });
 });
+
+const demoVideo = document.getElementById('demo-video');
+const demoPlayBtn = document.getElementById('demo-play-btn');
+
+if (demoVideo && demoPlayBtn) {
+  demoPlayBtn.addEventListener('click', () => {
+    demoVideo.play();
+    demoVideo.controls = true;
+    demoPlayBtn.classList.add('hide');
+  });
+}
+
+
 </script>
 
 
